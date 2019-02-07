@@ -1,0 +1,19 @@
+{
+  "name": "io.sintitulo.gps",
+  "version": "0.0.1",
+  "displayName": "Sin Titulo GPS",
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {
+      "cordova-plugin-geolocation": {},
+      "cordova-plugin-console": {}
+    }
+  },
+  "dependencies": {
+    "cordova-android": "7.1.4",
+    "cordova-plugin-console": "^1.1.0",
+    "cordova-plugin-geolocation": "^4.0.1"
+  }
+}
