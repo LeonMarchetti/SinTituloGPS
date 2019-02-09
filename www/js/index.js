@@ -1,4 +1,5 @@
-var tiempo = 0;
+var actualizacion = 0;
+var watchID = null;
 
 // Indicar que Cordova ya está cargado.
 function receivedEvent(id)
@@ -8,41 +9,52 @@ function receivedEvent(id)
     console.log('Received Event: ' + id);
 }
 
-// Obtener cada 10 segundos la posición del dispositivo.
-function sondearPosicion()
-{
-	navigator.geolocation.getCurrentPosition(
-		getCurrentPositionExito,
-		getCurrentPositionError,
-		{ enableHighAccuracy: true });
-    	
-	// Actualizar span de tiempo:
-	tiempo++;  
-	$("#tdTiempo").text(tiempo + "s");
-}
-
-function getCurrentPositionExito(posicion)
-{
-	$("#tdLat").text(posicion.coords.latitude);
-	$("#tdLon").text(posicion.coords.longitude);
-	$("#tdLatLonT").text(tiempo + "s");
-	$("#tdError").text("");
-	
-	console.log("[" + tiempo + "s] (" + posicion.coords.latitude + 
-			", " + posicion.coords.longitude + ")");
-}
-
-function getCurrentPositionError(error)
-{
-	$("#tdLat").text("");
-	$("#tdLon").text("");
-	$("#tdError").text(error.message);
-}
-
 function guardarPosicion()
 {
-	$("#tdLatGuardar").text($("#tdLat").text());
-	$("#tdLonGuardar").text($("#tdLon").text());
+    $("#tdLatGuardar").text($("#tdLat").text());
+    $("#tdLonGuardar").text($("#tdLon").text());
+}
+
+// watchPosition ===============================================================
+function iniciarWatch()
+{
+    if (!watchID)
+    {
+        watchID = navigator.geolocation.watchPosition(
+            function(posicion)
+            {
+                $("#tdLat").text(posicion.coords.latitude);
+                $("#tdLon").text(posicion.coords.longitude);
+                $("#tdLatLonT").text(actualizacion);
+                $("#tdError").text("");
+                
+                console.log("[" + actualizacion + "] (" + posicion.coords.latitude + 
+                    ", " + posicion.coords.longitude + ")");
+                
+                actualizacion++;
+            }, 
+            function(error)
+            {
+                $("#tdError").text(error.message);
+            }, 
+            {
+                timeout:            30000,
+                enableHighAccuracy: true,
+                maximumAge:         1000
+            }); 
+        
+        console.log("watchPosition iniciado para ID=" + watchID);
+    }
+}
+
+function terminarWatch()
+{
+    if (watchID)
+    {
+        navigator.geolocation.clearWatch(watchID);
+        console.log("watchPosition terminado para ID=" + watchID);
+        watchID = null;
+    }
 }
 
 $(document).ready(function()
@@ -50,8 +62,9 @@ $(document).ready(function()
 	$(document).bind("deviceready", function()
 	{
 		receivedEvent("#deviceready");
-		window.setInterval(sondearPosicion, 1000);
+		
+		$("#btnGuardar").click(guardarPosicion);
+	    $("#btnIniciar").click(iniciarWatch);
+	    $("#btnDetener").click(terminarWatch);
 	});
-	
-	$("#btnGuardar").click(guardarPosicion);
 });
