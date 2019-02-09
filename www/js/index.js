@@ -35,7 +35,20 @@ function iniciarWatch()
             }, 
             function(error)
             {
-                $("#tdError").text(error.message);
+                var codigo = "Desconocido";
+                switch (error.code)
+                {
+                    case PositionError.PERMISSION_DENIED:
+                        codigo = "Permiso denegado";
+                        break;
+                    case PositionError.POSITION_UNAVAILABLE:
+                        codigo = "Posición no disponible";
+                        break;
+                    case PositionError.TIMEOUT:
+                        codigo = "Tiempo agotado";
+                        break;
+                }
+                $("#tdError").text(codigo + " - " + error.message);
             }, 
             {
                 timeout:            30000,
