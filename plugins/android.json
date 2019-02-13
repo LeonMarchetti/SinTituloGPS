@@ -15,6 +15,12 @@
     },
     "cordova-plugin-console": {
       "PACKAGE_NAME": "io.sintitulo.gps"
+    },
+    "cordova-sqlite-storage": {
+      "PACKAGE_NAME": "io.sintitulo.gps"
+    },
+    "cordova-plugin-dialogs": {
+      "PACKAGE_NAME": "io.sintitulo.gps"
     }
   },
   "dependent_plugins": {}

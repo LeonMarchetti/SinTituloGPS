@@ -1,3 +1,5 @@
 /cordova-plugin-console/
 /cordova-plugin-geolocation/
 /cordova-plugin-whitelist/
+/cordova-sqlite-storage/
+/cordova-plugin-dialogs/

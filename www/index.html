@@ -22,26 +22,58 @@
     </head>
     <body>
         <div class="app">
-            <h1>SinTitulo GPS</h1>
+            <h1 class="ui-shadow ui-corner-all">SinTitulo GPS</h1>
             <div id="deviceready" class="blink">
                 <p class="event listening">Connecting to Device</p>
                 <p class="event received">Device is Ready</p>
             </div>
             
-            <table class="estilo_in_app">
-                <tr><td>Latitud</td><td id="tdLat">...</td><td id="tdLatLonT" rowspan=2>...</td></tr>
-                <tr><td>Longitud</td><td id="tdLon">...</td></tr>
-                <tr><td id="tdError" colspan=3 style="text-align: center">No cargado...</td></tr>
+            <table class="ui-shadow ui-corner-all ui-table">
+                <caption>Posición </caption>
+                <tbody>
+                    <tr>
+                        <td>Latitud</td>
+                        <td id="tdLat"></td>
+                    </tr>
+                    <tr>
+                        <td>Longitud</td>
+                        <td id="tdLon"></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td id="tdError" colspan=2 style="text-align: center">No cargado...</td>
+                    </tr>
+                </tfoot>
             </table>
             
-            <button id="btnGuardar" class="estilo_in_app">Guardar</button>
-            <button id="btnIniciar" class="estilo_in_app">Iniciar</button>
-            <button id="btnDetener" class="estilo_in_app">Detener</button>
+            <div id="botones" class="ui-overlay-shadow ui-corner-all">
+                <button id="btnIniciar" data-icon="navigation" data-theme="b">Iniciar</button>
+                <button id="btnDetener" style="display: none" data-icon="navigation" data-theme="b">Detener</button>
+                <button id="btnGuardar" data-icon="navigation" data-theme="b">Guardar</button>
+                <button id="btnMostrar" data-icon="navigation" data-theme="b">Mostrar Alarmas</button>
+                <button id="btnOcultar" style="display: none" data-icon="navigation" data-theme="b">Ocultar Alarmas</button>
+            </div>
             
-            <table id="tabGuardar" class="estilo_in_app">
-                <tr><td id="tdLatGuardar">...</td></tr>
-                <tr><td id="tdLonGuardar">...</td></tr>
-            </table>
+            <div id="divGuardar" style="display: none">
+                <h3>Guardar ubicación</h3>
+                <input id="inGuardarLat" type="number" placeholder="Latitud"/>
+                <input id="inGuardarLon" type="number" placeholder="Longitud"/>
+                <input id="inGuardarDesc" placeholder="Descripción">
+                <button id="btnGuardarCancelar" data-theme="b">Cancelar</button>
+                <button id="btnGuardarGuardar" data-theme="b">Guardar</button>
+            </div>
+            
+            <div id="divAlarmas" style="display: none">
+                <table class="ui-shadow ui-corner-all ui-table">
+                    <caption>Alarmas guardadas (presionar número para borrar)</caption>
+                    <thead>
+                        <tr><td>N°</td><td>Latitud</td><td>Longitud</td><td>Descripción</td></tr>
+                    </thead>
+                    <tbody id="tbodyAlarmas">
+                    </tbody>
+                </table>
+            </div>
         </div>
         
         <script src="js/jquery.min.js"></script>

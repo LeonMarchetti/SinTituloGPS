@@ -3,24 +3,7 @@
 	font-family: Open Sans;
 }
 
-.estilo_in_app
+.app > *
 {
 	width: 100%;
-}
-
-.app table,th,td
-{
-	border-bottom: 1px solid black;
-	border-top: 1px solid black;
-	border-collapse: collapse;
-}
-
-.app td:nth-child(1)
-{
-	text-align: left;
-}
-
-.app td:nth-child(2), td:nth-child(3)
-{
-	text-align: center;
 }
