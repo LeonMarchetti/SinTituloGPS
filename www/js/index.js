@@ -2,8 +2,10 @@ var watchID         = null;
 var db              = null;
 var ids             = [];
 
-var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null," + 
-                      "longitud Float Not Null,descripcion Text Default \"\");";
+/*var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null," + 
+                      "longitud Float Not Null,descripcion Text Default \"\");";*/
+var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null,longitud Float Not Null,descripcion Text Default \"\",distancia Float Default 0,activo Integer Default True);";
+var sql_drop_tabla  = "Drop Table Posicion";
 var sql_sel_pos_all = "Select * From Posicion";
 var sql_ins_pos     = "Insert Into Posicion (latitud, longitud, descripcion) Values (?, ?, ?)";
 
@@ -13,6 +15,17 @@ function receivedEvent(id)
 	$(id).find(".listening").attr("style", "display:none");
 	$(id).find(".received").attr("style", "display:block");
     console.log('Received Event: ' + id);
+}
+
+// Errores: ====================================================================
+function manejarError(error) 
+{
+    console.log(error.message);
+}
+
+function manejarErrorTransaccion(tx, error)
+{
+    console.log(error.message);
 }
 
 // Guardar alarma ==============================================================
@@ -43,15 +56,12 @@ function guardarAlarma()
     var descripcion = $("#inGuardarDesc").val();
     
     db.transaction(
-        function(tx) 
+        (tx) => 
         {
             tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion]);
         }, 
-        function(error) 
-        {
-            console.log(error.message);
-        }, 
-        function() 
+        manejarError, 
+        () => 
         {
             console.log("Insercion OK");
             consultarAlarmas();
@@ -85,39 +95,34 @@ function mostrarAlarmas()
     }, 500);
 }
 
+function llenarTablaAlarmas(tx, rs)
+{
+    var celdas = "";
+    for (var i = 0; i < rs.rows.length; i++)
+    {
+        celdas += 
+            "<tr>" +
+            "<td>" + rs.rows.item(i).id + "</td>" +
+            "<td>" + rs.rows.item(i).latitud + "</td>" +
+            "<td>" + rs.rows.item(i).longitud + "</td>" +
+            "<td>" + rs.rows.item(i).descripcion + "</td>" +
+            "</tr>";
+    }
+    
+    $("#tbodyAlarmas").append(celdas);
+    $("#tbodyAlarmas td:first-child").click(borrarAlarma);
+}
+
 function consultarAlarmas()
 {
     $("#tbodyAlarmas").empty();
     
-    db.transaction(function(tx) 
+    db.transaction(
+        (tx) => 
         {
-            tx.executeSql(sql_sel_pos_all, [], 
-                function(tx, rs)
-                {
-                    var celdas = "";
-                    for (var i = 0; i < rs.rows.length; i++)
-                    {
-                        celdas += 
-                            "<tr>" +
-                            "<td>" + rs.rows.item(i).id + "</td>" +
-                            "<td>" + rs.rows.item(i).latitud + "</td>" +
-                            "<td>" + rs.rows.item(i).longitud + "</td>" +
-                            "<td>" + rs.rows.item(i).descripcion + "</td>" +
-                            "</tr>";
-                    }
-                    
-                    $("#tbodyAlarmas").append(celdas);
-                    $("#tbodyAlarmas td:first-child").click(borrarAlarma);
-                },
-                function(tx, error) 
-                {
-                    console.log(error.message);
-                });
+            tx.executeSql(sql_sel_pos_all, [], llenarTablaAlarmas, manejarErrorTransaccion);
         },
-        function(tx, error)
-        {
-            console.log(error.message);
-        });
+        manejarErrorTransaccion);
 }
 
 function ocultarAlarmas()
@@ -137,15 +142,12 @@ function borrarAlarma(evento)
         if (i == 1)
         {
             db.transaction(
-                function(tx) 
+                (tx) => 
                 {
                     tx.executeSql("Delete From Posicion Where id=?", [id]);
                 },
-                function(error)
-                {
-                    console.log(error.message);
-                },
-                function()
+                manejarError,
+                () =>
                 {
                     console.log("Posicion con id=" + id + " borrada.");
                     $(evento.target).parent().remove();
@@ -186,6 +188,46 @@ function distancia(lat1, lon1, lat2, lon2)
 }
 
 // watchPosition ===============================================================
+function revisarAlarmas(tx, rs)
+{
+    for (var i = 0; i < rs.rows.length; i++)
+    {
+        var posicion = rs.rows.item(i);
+        var d        = distancia(
+                           latitud_actual, longitud_actual,
+                           posicion.latitud, posicion.longitud);
+        
+        if (d <= 1)
+        {
+            /* 
+             * Si el id de la alarma no está en la lista, 
+             * significa que recién acabo de llegar al área de 
+             * la alarma y entonces tengo que lanzar la 
+             * notificación.
+             */
+            if (!ids.includes(posicion.id)) 
+            {
+                notificar("Alarma GPS", posicion.descripcion);
+                console.log("Posicion encontrada: id=" + posicion.id);
+                ids.push(posicion.id);
+            }
+        }
+        else
+        {
+            /* 
+             * Si el id está actualmente en la lista de ids,
+             * entonces significa que acabo de salir de la zona 
+             * de la alarma y puedo sacar el id de la lista.
+             */
+            var j = ids.indexOf(posicion.id);
+            if (j > -1)
+            {
+                ids.splice(j, 1);
+            }
+        }
+    }
+}
+
 function onWatchPosition(pos)
 {
     var latitud_actual  = pos.coords.latitude;
@@ -195,52 +237,12 @@ function onWatchPosition(pos)
     $("#tdLon").text(longitud_actual);
     $("#tdError").text("");
     
-    db.transaction(function(tx)
+    db.transaction((tx) =>
     {
-        tx.executeSql(sql_sel_pos_all, [],
-            function(tx, rs)
-            {
-                for (var i = 0; i < rs.rows.length; i++)
-                {
-                    var posicion = rs.rows.item(i);
-                    var d        = distancia(
-                                       latitud_actual, longitud_actual,
-                                       posicion.latitud, posicion.longitud);
-                    
-                    if (d <= 1)
-                    {
-                        /* 
-                         * Si el id de la alarma no está en la lista, 
-                         * significa que recién acabo de llegar al área de 
-                         * la alarma y entonces tengo que lanzar la 
-                         * notificación.
-                         */
-                        if (!ids.includes(posicion.id)) 
-                        {
-                            notificar("Alarma GPS", posicion.descripcion);
-                            console.log("Posicion encontrada: id=" + posicion.id);
-                            ids.push(posicion.id);
-                        }
-                    }
-                    else
-                    {
-                        /* 
-                         * Si el id está actualmente en la lista de ids,
-                         * entonces significa que acabo de salir de la zona 
-                         * de la alarma y puedo sacar el id de la lista.
-                         */
-                        var j = ids.indexOf(posicion.id);
-                        if (j > -1)
-                        {
-                            ids.splice(j, 1);
-                        }
-                    }
-                }
-            },
-            function(tx, error)
-            {
-                console.log(error.message);
-            });
+        tx.executeSql(
+            sql_sel_pos_all, [],
+            revisarAlarmas,
+            manejarErrorTransaccion);
     });
 }
 
@@ -289,9 +291,9 @@ function terminarWatch()
     watchID = null;
 }
 
-$(document).ready(function()
+$(document).ready(() =>
 {	
-	$(document).bind("deviceready", function()
+	$(document).bind("deviceready", () =>
 	{	    
 	    db = window.sqlitePlugin.openDatabase(
         {
@@ -300,18 +302,18 @@ $(document).ready(function()
         });
 	    
 	    db.transaction(
-	        function(tx) 
+	        (tx) => 
 	        {
-	            tx.executeSql(sql_crear_tabla);
-	        }, 
-	        function(error) 
-	        {
-	            console.log(error.message);
-	        }, 
-	        function() 
-	        {
-	            console.log("Base de datos inicializada");
-	        });
+	            tx.executeSql(sql_crear_tabla); 
+            },
+	        (error) =>
+            {
+                console.log(error.message); 
+            }, 
+	        () => 
+            { 
+                console.log("Base de datos inicializada"); 
+            });
 	    
 		receivedEvent("#deviceready");
 		
