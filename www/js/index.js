@@ -2,10 +2,12 @@ var actualizacion   = 0;
 var watchID         = null;
 var db              = null;
 
+var ids = [];
+
 var sql_crear_tabla = "Create Table If Not Exists Posicion(" + 
                       "id Integer Primary Key,latitud Float Not Null," + 
                       "longitud Float Not Null,descripcion Text Default \"\");";
-var sql_sel_pos     = "Select * From Posicion";
+var sql_sel_pos_all = "Select * From Posicion";
 var sql_ins_pos     = "Insert Into Posicion (latitud, longitud, descripcion) Values (?, ?, ?)";
 
 // Indicar que Cordova ya está cargado.
@@ -90,7 +92,7 @@ function consultarAlarmas()
     
     db.transaction(function(tx) 
         {
-            tx.executeSql(sql_sel_pos, [], 
+            tx.executeSql(sql_sel_pos_all, [], 
                 function(tx, rs)
                 {
                     var celdas = "";
@@ -154,40 +156,118 @@ function borrarAlarma(evento)
 }
 
 // watchPosition ===============================================================
+function toRad(g)
+{
+    return g * Math.PI / 180;
+}
+
+function distancia(lat1, lon1, lat2, lon2) 
+{
+    var R    = 6371; // Radius of the earth in km
+    /*var dLat = (lat2-lat1).toRad();  // Javascript functions in radians
+    var dLon = (lon2-lon1).toRad(); 
+    var a    = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                   Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * 
+                   Math.sin(dLon/2) * Math.sin(dLon/2);*/ 
+    var dLat = toRad(lat2 - lat1);  // Javascript functions in radians
+    var dLon = toRad(lon2 - lon1); 
+    var a    = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                   Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+                   Math.sin(dLon/2) * Math.sin(dLon/2); 
+    var c    = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d    = R * c; // Distance in km
+    
+    return d;
+}
+
+function onWatchPosition(pos)
+{
+    var latitud_actual  = pos.coords.latitude;
+    var longitud_actual = pos.coords.longitude;
+    
+    $("#tdLat").text(latitud_actual);
+    $("#tdLon").text(longitud_actual);
+    $("#tdError").text("");
+    
+    db.transaction(function(tx)
+    {
+        tx.executeSql(sql_sel_pos_all, [],
+            function(tx, rs)
+            {
+                for (var i = 0; i < rs.rows.length; i++)
+                {
+                    var posicion = rs.rows.item(i);
+                    var d        = distancia(
+                                       latitud_actual, longitud_actual,
+                                       posicion.latitud, posicion.longitud);
+                    
+                    if (d <= 1)
+                    {
+                        /* 
+                         * Si el id de la alarma no está en la lista, 
+                         * significa que recién acabo de llegar al área de 
+                         * la alarma y entonces tengo que lanzar la 
+                         * notificación.
+                         */
+                        if (!ids.includes(posicion.id)) 
+                        {
+                            navigator.notification.beep(1);
+                            navigator.notification.alert(
+                                posicion.descripcion, null, "SinTituloGPS");
+                            console.log("Posicion encontrada: [" + 
+                                posicion.id + "]");
+                            
+                            ids.push(posicion.id);
+                        }
+                    }
+                    else
+                    {
+                        /* 
+                         * Si el id está actualmente en la lista de ids,
+                         * entonces significa que acabo de salir de la zona 
+                         * de la alarma y puedo sacar el id de la lista.
+                         */
+                        var j = ids.indexOf(posicion.id);
+                        if (j > -1)
+                        {
+                            ids.splice(j, 1);
+                        }
+                    }
+                }
+            },
+            function(tx, error)
+            {
+                console.log(error.message);
+            });
+    });
+}
+
+function onWatchPositionError(error)
+{
+    var codigo = "Desconocido";
+    switch (error.code)
+    {
+        case PositionError.PERMISSION_DENIED:
+            codigo = "Permiso denegado";
+            break;
+        case PositionError.POSITION_UNAVAILABLE:
+            codigo = "Posición no disponible";
+            break;
+        case PositionError.TIMEOUT:
+            codigo = "Tiempo agotado";
+            break;
+    }
+    $("#tdError").text(codigo + " - " + error.message);
+}
+
 function iniciarWatch()
 {
     $("#btnIniciar").hide();
     $("#btnDetener").show();
     
     watchID = navigator.geolocation.watchPosition(
-        function(posicion)
-        {
-            $("#tdLat").text(posicion.coords.latitude);
-            $("#tdLon").text(posicion.coords.longitude);
-            $("#tdError").text("");
-            
-            /*console.log("[" + actualizacion + "] (" + posicion.coords.latitude + 
-                ", " + posicion.coords.longitude + ")");*/
-            
-            actualizacion++;
-        }, 
-        function(error)
-        {
-            var codigo = "Desconocido";
-            switch (error.code)
-            {
-                case PositionError.PERMISSION_DENIED:
-                    codigo = "Permiso denegado";
-                    break;
-                case PositionError.POSITION_UNAVAILABLE:
-                    codigo = "Posición no disponible";
-                    break;
-                case PositionError.TIMEOUT:
-                    codigo = "Tiempo agotado";
-                    break;
-            }
-            $("#tdError").text(codigo + " - " + error.message);
-        }, 
+        onWatchPosition, 
+        onWatchPositionError, 
         {
             timeout:            30000,
             enableHighAccuracy: true,
