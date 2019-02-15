@@ -3,3 +3,9 @@
 /cordova-plugin-whitelist/
 /cordova-sqlite-storage/
 /cordova-plugin-dialogs/
+/phonegap-plugin-push/
+/cordova-support-google-services/
+/phonegap-plugin-multidex/
+/cordova-plugin-local-notification/
+/cordova-plugin-device/
+/cordova-plugin-badge/

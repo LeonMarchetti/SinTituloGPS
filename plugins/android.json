@@ -21,7 +21,17 @@
     },
     "cordova-plugin-dialogs": {
       "PACKAGE_NAME": "io.sintitulo.gps"
+    },
+    "cordova-plugin-local-notification": {
+      "PACKAGE_NAME": "io.sintitulo.gps"
     }
   },
-  "dependent_plugins": {}
+  "dependent_plugins": {
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "io.sintitulo.gps"
+    },
+    "cordova-plugin-badge": {
+      "PACKAGE_NAME": "io.sintitulo.gps"
+    }
+  }
 }

@@ -1,11 +1,8 @@
-var actualizacion   = 0;
 var watchID         = null;
 var db              = null;
+var ids             = [];
 
-var ids = [];
-
-var sql_crear_tabla = "Create Table If Not Exists Posicion(" + 
-                      "id Integer Primary Key,latitud Float Not Null," + 
+var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null," + 
                       "longitud Float Not Null,descripcion Text Default \"\");";
 var sql_sel_pos_all = "Select * From Posicion";
 var sql_ins_pos     = "Insert Into Posicion (latitud, longitud, descripcion) Values (?, ?, ?)";
@@ -18,6 +15,7 @@ function receivedEvent(id)
     console.log('Received Event: ' + id);
 }
 
+// Guardar alarma ==============================================================
 function habilitarGuardar()
 {
     console.log("habilitarGuardar()");
@@ -72,6 +70,7 @@ function ocultarDivGuardarAlarma()
     $("#btnGuardar").prop("disabled", false);
 }
 
+// Alarmas guardadas ===========================================================
 function mostrarAlarmas()
 {
     $("#divAlarmas").show();
@@ -155,7 +154,18 @@ function borrarAlarma(evento)
     }, "SinTituloGPS", ["Borrar", "Cancelar"]);
 }
 
-// watchPosition ===============================================================
+// Notificaciones ==============================================================
+function notificar(titulo, texto)
+{
+    cordova.plugins.notification.local.schedule(
+    {
+        title:      titulo,
+        text:       texto,
+        foreground: true
+    });
+}
+
+// Distancia ===================================================================
 function toRad(g)
 {
     return g * Math.PI / 180;
@@ -164,11 +174,6 @@ function toRad(g)
 function distancia(lat1, lon1, lat2, lon2) 
 {
     var R    = 6371; // Radius of the earth in km
-    /*var dLat = (lat2-lat1).toRad();  // Javascript functions in radians
-    var dLon = (lon2-lon1).toRad(); 
-    var a    = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                   Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * 
-                   Math.sin(dLon/2) * Math.sin(dLon/2);*/ 
     var dLat = toRad(lat2 - lat1);  // Javascript functions in radians
     var dLon = toRad(lon2 - lon1); 
     var a    = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -180,6 +185,7 @@ function distancia(lat1, lon1, lat2, lon2)
     return d;
 }
 
+// watchPosition ===============================================================
 function onWatchPosition(pos)
 {
     var latitud_actual  = pos.coords.latitude;
@@ -211,12 +217,8 @@ function onWatchPosition(pos)
                          */
                         if (!ids.includes(posicion.id)) 
                         {
-                            navigator.notification.beep(1);
-                            navigator.notification.alert(
-                                posicion.descripcion, null, "SinTituloGPS");
-                            console.log("Posicion encontrada: [" + 
-                                posicion.id + "]");
-                            
+                            notificar("Alarma GPS", posicion.descripcion);
+                            console.log("Posicion encontrada: id=" + posicion.id);
                             ids.push(posicion.id);
                         }
                     }
@@ -290,7 +292,7 @@ function terminarWatch()
 $(document).ready(function()
 {	
 	$(document).bind("deviceready", function()
-	{
+	{	    
 	    db = window.sqlitePlugin.openDatabase(
         {
             name:     "alarmas.db",

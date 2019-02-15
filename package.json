@@ -10,14 +10,20 @@
       "cordova-plugin-geolocation": {},
       "cordova-plugin-console": {},
       "cordova-sqlite-storage": {},
-      "cordova-plugin-dialogs": {}
+      "cordova-plugin-dialogs": {},
+      "cordova-plugin-local-notification": {}
     }
   },
   "dependencies": {
     "cordova-android": "7.1.4",
+    "cordova-plugin-badge": "^0.8.8",
     "cordova-plugin-console": "^1.1.0",
+    "cordova-plugin-device": "^2.0.2",
     "cordova-plugin-dialogs": "^2.0.1",
     "cordova-plugin-geolocation": "^4.0.1",
-    "cordova-sqlite-storage": "^3.0.0"
+    "cordova-plugin-local-notification": "^0.9.0-beta.2",
+    "cordova-sqlite-storage": "^3.0.0",
+    "cordova-support-google-services": "^1.1.0",
+    "phonegap-plugin-multidex": "^1.0.0"
   }
 }
