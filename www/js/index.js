@@ -101,7 +101,7 @@ function llenarTablaAlarmas(tx, rs)
         var marcar = (rs.rows.item(i).activo) ? "checked=\"checked\"" : "";
         celdas += 
             "<tr>" +
-            "<td>" + rs.rows.item(i).id + "</td>" +
+            "<td class=\"alarmaId\">" + rs.rows.item(i).id + "</td>" +
             "<td>" + rs.rows.item(i).latitud + "</td>" +
             "<td>" + rs.rows.item(i).longitud + "</td>" +
             "<td>" + rs.rows.item(i).descripcion + "</td>" +
@@ -115,7 +115,7 @@ function llenarTablaAlarmas(tx, rs)
     $("#tbodyAlarmas .alternarAlarma").change((e) =>
     {
         var activo = ($(e.target).prop("checked")) ? 1 : 0;
-        var id     = $(e.target).parent().parent().children(":nth-child(1)").text();
+        var id     = $(e.target).parent().parent().children(".alarmaId").text();
         
         db.transaction(
             (tx) =>
@@ -125,7 +125,7 @@ function llenarTablaAlarmas(tx, rs)
             manejarError, 
             () =>
             {
-                console.log("Actualizado: id=" + id + " activo=" + activo);
+                console.log("Actualizado: id=" + id + ", activo=" + activo);
             });
     });
 }
