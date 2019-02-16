@@ -2,12 +2,11 @@ var watchID         = null;
 var db              = null;
 var ids             = [];
 
-/*var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null," + 
-                      "longitud Float Not Null,descripcion Text Default \"\");";*/
 var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null,longitud Float Not Null,descripcion Text Default \"\",distancia Float Default 0,activo Integer Default True);";
 var sql_drop_tabla  = "Drop Table Posicion";
 var sql_sel_pos_all = "Select * From Posicion";
-var sql_ins_pos     = "Insert Into Posicion (latitud, longitud, descripcion) Values (?, ?, ?)";
+var sql_sel_pos_act = "Select * From Posicion Where activo = 1";
+var sql_ins_pos     = "Insert Into Posicion(latitud,longitud,descripcion,distancia,activo)Values(?,?,?,?,?)";
 
 // Indicar que Cordova ya está cargado.
 function receivedEvent(id)
@@ -31,8 +30,6 @@ function manejarErrorTransaccion(tx, error)
 // Guardar alarma ==============================================================
 function habilitarGuardar()
 {
-    console.log("habilitarGuardar()");
-    
     // Mostrar elementos:
     $("#divGuardar").show();
     $("#btnGuardar").prop("disabled", true);
@@ -49,16 +46,16 @@ function habilitarGuardar()
 
 function guardarAlarma()
 {
-    console.log("guardarAlarma()");
-
-    var latitud = $("#inGuardarLat").val();
-    var longitud = $("#inGuardarLon").val();
+    var latitud     = $("#inGuardarLat").val();
+    var longitud    = $("#inGuardarLon").val();
     var descripcion = $("#inGuardarDesc").val();
+    var distancia   = $("#inGuardarDist").val();
+    var activo      = $("#inGuardarActivo").prop("checked") ? 1 : 0;
     
     db.transaction(
         (tx) => 
         {
-            tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion]);
+            tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion, distancia, activo]);
         }, 
         manejarError, 
         () => 
@@ -100,12 +97,15 @@ function llenarTablaAlarmas(tx, rs)
     var celdas = "";
     for (var i = 0; i < rs.rows.length; i++)
     {
+        var marcar = (rs.rows.item(i).activo) ? "checked=\"checked\"" : "";
         celdas += 
             "<tr>" +
             "<td>" + rs.rows.item(i).id + "</td>" +
             "<td>" + rs.rows.item(i).latitud + "</td>" +
             "<td>" + rs.rows.item(i).longitud + "</td>" +
             "<td>" + rs.rows.item(i).descripcion + "</td>" +
+            "<td>" + rs.rows.item(i).distancia+ "</td>" +
+            "<td><input type=\"checkbox\" " + marcar + " /></td>" +
             "</tr>";
     }
     
@@ -135,7 +135,6 @@ function ocultarAlarmas()
 function borrarAlarma(evento)
 {
     var id = $(evento.target).text();
-    console.log("id = " + id);
     
     navigator.notification.confirm("¿Desea borrar esta alarma?", function(i)
     {
@@ -149,7 +148,6 @@ function borrarAlarma(evento)
                 manejarError,
                 () =>
                 {
-                    console.log("Posicion con id=" + id + " borrada.");
                     $(evento.target).parent().remove();
                 });
         }
@@ -188,46 +186,6 @@ function distancia(lat1, lon1, lat2, lon2)
 }
 
 // watchPosition ===============================================================
-function revisarAlarmas(tx, rs)
-{
-    for (var i = 0; i < rs.rows.length; i++)
-    {
-        var posicion = rs.rows.item(i);
-        var d        = distancia(
-                           latitud_actual, longitud_actual,
-                           posicion.latitud, posicion.longitud);
-        
-        if (d <= 1)
-        {
-            /* 
-             * Si el id de la alarma no está en la lista, 
-             * significa que recién acabo de llegar al área de 
-             * la alarma y entonces tengo que lanzar la 
-             * notificación.
-             */
-            if (!ids.includes(posicion.id)) 
-            {
-                notificar("Alarma GPS", posicion.descripcion);
-                console.log("Posicion encontrada: id=" + posicion.id);
-                ids.push(posicion.id);
-            }
-        }
-        else
-        {
-            /* 
-             * Si el id está actualmente en la lista de ids,
-             * entonces significa que acabo de salir de la zona 
-             * de la alarma y puedo sacar el id de la lista.
-             */
-            var j = ids.indexOf(posicion.id);
-            if (j > -1)
-            {
-                ids.splice(j, 1);
-            }
-        }
-    }
-}
-
 function onWatchPosition(pos)
 {
     var latitud_actual  = pos.coords.latitude;
@@ -240,8 +198,46 @@ function onWatchPosition(pos)
     db.transaction((tx) =>
     {
         tx.executeSql(
-            sql_sel_pos_all, [],
-            revisarAlarmas,
+            sql_sel_pos_act, [],
+            (tx, rs) =>
+            {
+                for (var i = 0; i < rs.rows.length; i++)
+                {
+                    var alarma = rs.rows.item(i);
+                    var d      = distancia(
+                                     latitud_actual, longitud_actual,
+                                     alarma.latitud, alarma.longitud);
+            
+                    if (d <= (alarma.distancia / 1000))
+                    {
+                       /* 
+                        * Si el id de la alarma no está en la lista, 
+                        * significa que recién acabo de llegar al área de 
+                        * la alarma y entonces tengo que lanzar la 
+                        * notificación.
+                        */
+                        if (!ids.includes(alarma.id)) 
+                        {
+                            notificar("Alarma GPS", alarma.descripcion);
+                            console.log("Posicion encontrada: id=" + alarma.id);
+                            ids.push(alarma.id);
+                        }
+                    }
+                    else
+                    {
+                       /* 
+                        * Si el id está actualmente en la lista de ids,
+                        * entonces significa que acabo de salir de la zona 
+                        * de la alarma y puedo sacar el id de la lista.
+                        */
+                        var j = ids.indexOf(alarma.id);
+                        if (j > -1)
+                        {
+                            ids.splice(j, 1);
+                        }
+                    }
+                }
+            },
             manejarErrorTransaccion);
     });
 }
@@ -324,5 +320,14 @@ $(document).ready(() =>
 	    $("#btnOcultar").click(ocultarAlarmas);
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
+	    
+	    /*$("#btnPrueba").click(() =>
+	    {
+	        // Limpiar lista de ids en caché:
+	        ids = [];
+	        console.log("ids vacio: " + JSON.stringify(ids));
+	    });*/
+	    
+	    // Prueba:
 	});
 });
