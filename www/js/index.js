@@ -7,6 +7,7 @@ var sql_drop_tabla  = "Drop Table Posicion";
 var sql_sel_pos_all = "Select * From Posicion";
 var sql_sel_pos_act = "Select * From Posicion Where activo = 1";
 var sql_ins_pos     = "Insert Into Posicion(latitud,longitud,descripcion,distancia,activo)Values(?,?,?,?,?)";
+var sql_upd_pos_act = "Update Posicion Set activo = ? Where id = ?";
 
 // Indicar que Cordova ya está cargado.
 function receivedEvent(id)
@@ -104,13 +105,29 @@ function llenarTablaAlarmas(tx, rs)
             "<td>" + rs.rows.item(i).latitud + "</td>" +
             "<td>" + rs.rows.item(i).longitud + "</td>" +
             "<td>" + rs.rows.item(i).descripcion + "</td>" +
-            "<td>" + rs.rows.item(i).distancia+ "</td>" +
-            "<td><input type=\"checkbox\" " + marcar + " /></td>" +
+            "<td>" + rs.rows.item(i).distancia + "</td>" +
+            "<td><input type=\"checkbox\" class=\"alternarAlarma\"" + marcar + " /></td>" +
             "</tr>";
     }
     
     $("#tbodyAlarmas").append(celdas);
     $("#tbodyAlarmas td:first-child").click(borrarAlarma);
+    $("#tbodyAlarmas .alternarAlarma").change((e) =>
+    {
+        var activo = ($(e.target).prop("checked")) ? 1 : 0;
+        var id     = $(e.target).parent().parent().children(":nth-child(1)").text();
+        
+        db.transaction(
+            (tx) =>
+            {
+                tx.executeSql(sql_upd_pos_act, [activo, id]);
+            },
+            manejarError, 
+            () =>
+            {
+                console.log("Actualizado: id=" + id + " activo=" + activo);
+            });
+    });
 }
 
 function consultarAlarmas()
@@ -132,9 +149,9 @@ function ocultarAlarmas()
     $("#btnOcultar").hide();
 }
 
-function borrarAlarma(evento)
+function borrarAlarma(e)
 {
-    var id = $(evento.target).text();
+    var id = $(e.target).text();
     
     navigator.notification.confirm("¿Desea borrar esta alarma?", function(i)
     {
@@ -148,7 +165,7 @@ function borrarAlarma(evento)
                 manejarError,
                 () =>
                 {
-                    $(evento.target).parent().remove();
+                    $(e.target).parent().remove();
                 });
         }
     }, "SinTituloGPS", ["Borrar", "Cancelar"]);
