@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.sintitulo.gps" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>Sin Titulo GPS</name>
+<widget id="io.alarma.gps" version="1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Alarma GPS</name>
     <description>Probar funcionalidad GPS de Cordova.</description>
     <author email="thym-dev@eclipse.org" href="http://www.eclipse.org/thym">
         Eclipse.org - Thym
