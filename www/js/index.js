@@ -1,13 +1,19 @@
-var watchID         = null;
-var db              = null;
-var ids             = [];
+var watchID          = null;
+var db               = null;
+var ids              = [];
 
-var sql_crear_tabla = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null,longitud Float Not Null,descripcion Text Default \"\",distancia Float Default 0,activo Integer Default True);";
-var sql_drop_tabla  = "Drop Table Posicion";
-var sql_sel_pos_all = "Select * From Posicion";
-var sql_sel_pos_act = "Select * From Posicion Where activo = 1";
-var sql_ins_pos     = "Insert Into Posicion(latitud,longitud,descripcion,distancia,activo)Values(?,?,?,?,?)";
-var sql_upd_pos_act = "Update Posicion Set activo = ? Where id = ?";
+var sql_crear_tabla  = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null,longitud Float Not Null,descripcion Text Default \"\",distancia Float Default 0,activo Integer Default True);";
+var sql_drop_tabla   = "Drop Table Posicion";
+var sql_sel_pos_all  = "Select * From Posicion";
+var sql_sel_pos_act  = "Select * From Posicion Where activo = 1";
+var sql_ins_pos      = "Insert Into Posicion(latitud,longitud,descripcion,distancia,activo)Values(?,?,?,?,?)";
+
+// SQL: actualizacion de alarmas
+var sql_upd_pos_act  = "Update Posicion Set activo = ? Where id = ?";
+var sql_upd_pos_lat  = "Update Posicion Set latitud = ? Where id = ?";
+var sql_upd_pos_lon  = "Update Posicion Set longitud = ? Where id = ?";
+var sql_upd_pos_desc = "Update Posicion Set descripcion = ? Where id = ?";
+var sql_upd_pos_dist = "Update Posicion Set distancia = ? Where id = ?";
 
 // Indicar que Cordova ya está cargado.
 function receivedEvent(id)
@@ -102,32 +108,22 @@ function llenarTablaAlarmas(tx, rs)
         celdas += 
             "<tr>" +
             "<td class=\"alarmaId\">" + rs.rows.item(i).id + "</td>" +
-            "<td>" + rs.rows.item(i).latitud + "</td>" +
-            "<td>" + rs.rows.item(i).longitud + "</td>" +
-            "<td>" + rs.rows.item(i).descripcion + "</td>" +
-            "<td>" + rs.rows.item(i).distancia + "</td>" +
+            "<td><input type=\"number\" class=\"alarmaLat\" value=\"" + rs.rows.item(i).latitud + "\"/></td>" +
+            "<td><input type=\"number\" class=\"alarmaLon\" value=\"" + rs.rows.item(i).longitud + "\"/></td>" +
+            "<td><input class=\"alarmaDesc\" value=\"" + rs.rows.item(i).descripcion + "\"/></td>" +
+            "<td><input type=\"number\" class=\"alarmaDist\" value=\"" + rs.rows.item(i).distancia + "\"/></td>" +
             "<td><input type=\"checkbox\" class=\"alternarAlarma\"" + marcar + " /></td>" +
             "</tr>";
     }
     
     $("#tbodyAlarmas").append(celdas);
-    $("#tbodyAlarmas td:first-child").click(borrarAlarma);
-    $("#tbodyAlarmas .alternarAlarma").change((e) =>
-    {
-        var activo = ($(e.target).prop("checked")) ? 1 : 0;
-        var id     = $(e.target).parent().parent().children(".alarmaId").text();
-        
-        db.transaction(
-            (tx) =>
-            {
-                tx.executeSql(sql_upd_pos_act, [activo, id]);
-            },
-            manejarError, 
-            () =>
-            {
-                console.log("Actualizado: id=" + id + ", activo=" + activo);
-            });
-    });
+    
+    $("#tbodyAlarmas .alarmaId").click(borrarAlarma);
+    $("#tbodyAlarmas .alternarAlarma").change(cambiarEstado);
+    $("#tbodyAlarmas .alarmaLat").change(cambiarLatitud);
+    $("#tbodyAlarmas .alarmaLon").change(cambiarLongitud);
+    $("#tbodyAlarmas .alarmaDesc").change(cambiarDescripcion);
+    $("#tbodyAlarmas .alarmaDist").change(cambiarDistancia);
 }
 
 function consultarAlarmas()
@@ -169,6 +165,92 @@ function borrarAlarma(e)
                 });
         }
     }, "SinTituloGPS", ["Borrar", "Cancelar"]);
+}
+
+// Actualizar alarmas ==========================================================
+function cambiarEstado(e)
+{
+    var activo = ($(e.target).prop("checked")) ? 1 : 0;
+    var id     = $(e.target).parent().parent().children(".alarmaId").text();
+    
+    db.transaction(
+        (tx) =>
+        {
+            tx.executeSql(sql_upd_pos_act, [activo, id]);
+        },
+        manejarError, 
+        () =>
+        {
+            console.log("Actualizado: id=" + id + ", activo=" + activo);
+        });
+}
+
+function cambiarLatitud(e)
+{
+    var lat_nueva = $(e.target).val();
+    var id        = $(e.target).parent().parent().children(".alarmaId").text();
+    
+    db.transaction(
+        (tx) =>
+        {
+            tx.executeSql(sql_upd_pos_lat, [lat_nueva, id]);
+        }, 
+        manejarError, 
+        () => 
+        {
+            console.log("Actualizado: id=" + id + ", latitud=" + lat_nueva);
+        });
+}
+
+function cambiarLongitud(e)
+{
+    var lon_nueva = $(e.target).val();
+    var id        = $(e.target).parent().parent().children(".alarmaId").text();
+    
+    db.transaction(
+        (tx) =>
+        {
+            tx.executeSql(sql_upd_pos_lon, [lon_nueva, id]);
+        }, 
+        manejarError, 
+        () => 
+        {
+            console.log("Actualizado: id=" + id + ", longitud=" + lon_nueva);
+        });
+}
+
+function cambiarDescripcion(e)
+{
+    var desc_nueva = $(e.target).val();
+    var id         = $(e.target).parent().parent().children(".alarmaId").text();
+    
+    db.transaction(
+        (tx) =>
+        {
+            tx.executeSql(sql_upd_pos_lat, [desc_nueva, id]);
+        }, 
+        manejarError, 
+        () => 
+        {
+            console.log("Actualizado: id=" + id + ", descripcion=" + desc_nueva);
+        });
+}
+
+function cambiarDistancia(e)
+{
+    var dist_nueva = $(e.target).val();
+    var id         = $(e.target).parent().parent().children(".alarmaId").text();
+    
+    db.transaction(
+        (tx) =>
+        {
+            tx.executeSql(sql_upd_pos_lat, [dist_nueva, id]);
+        }, 
+        manejarError, 
+        () => 
+        {
+            console.log("Actualizado: id=" + id + ", distancia=" + dist_nueva);
+        });
 }
 
 // Notificaciones ==============================================================
