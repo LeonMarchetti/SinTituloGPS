@@ -15,14 +15,6 @@ var sql_upd_pos_lon  = "Update Posicion Set longitud = ? Where id = ?";
 var sql_upd_pos_desc = "Update Posicion Set descripcion = ? Where id = ?";
 var sql_upd_pos_dist = "Update Posicion Set distancia = ? Where id = ?";
 
-// Indicar que Cordova ya está cargado.
-function receivedEvent(id)
-{
-	$(id).find(".listening").attr("style", "display:none");
-	$(id).find(".received").attr("style", "display:block");
-    console.log('Received Event: ' + id);
-}
-
 // Errores: ====================================================================
 function manejarError(error) 
 {
@@ -290,6 +282,8 @@ function onWatchPosition(pos)
     var latitud_actual  = pos.coords.latitude;
     var longitud_actual = pos.coords.longitude;
     
+//    console.log(`(${latitud_actual}, ${longitud_actual})`);
+    
     $("#tdLat").text(latitud_actual);
     $("#tdLon").text(longitud_actual);
     $("#tdError").text("");
@@ -318,7 +312,7 @@ function onWatchPosition(pos)
                         if (!ids.includes(alarma.id)) 
                         {
                             notificar("Alarma GPS", alarma.descripcion);
-                            console.log("Posicion encontrada: id=" + alarma.id);
+                            console.log(`Posicion encontrada: id=${alarma.id}`);
                             ids.push(alarma.id);
                         }
                     }
@@ -373,7 +367,7 @@ function iniciarWatch()
             maximumAge:         1000
         }); 
     
-    console.log("watchPosition iniciado para ID=" + watchID);
+    console.log(`watchPosition iniciado para id=${watchID}`);
 }
 
 function terminarWatch()
@@ -388,6 +382,8 @@ function terminarWatch()
 
 $(document).ready(() =>
 {	
+    console.log("Cordova está listo...");
+    
 	$(document).bind("deviceready", () =>
 	{	    
 	    db = window.sqlitePlugin.openDatabase(
@@ -409,8 +405,6 @@ $(document).ready(() =>
             { 
                 console.log("Base de datos inicializada"); 
             });
-	    
-		receivedEvent("#deviceready");
 		
 	    $("#btnIniciar").click(iniciarWatch);
 	    $("#btnDetener").click(terminarWatch);
@@ -424,7 +418,7 @@ $(document).ready(() =>
 	    {
 	        // Limpiar lista de ids en caché:
 	        ids = [];
-	        console.log("ids vacio: " + JSON.stringify(ids));
+	        console.log(`ids vacio: ${JSON.stringify(ids)}`);
 	    });*/
 	    
 	    // Prueba:

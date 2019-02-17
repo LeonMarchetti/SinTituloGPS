@@ -22,28 +22,16 @@
     </head>
     <body>
         <div class="app">
-            <h1 class="ui-shadow ui-corner-all">SinTitulo GPS</h1>
-            <div id="deviceready" class="blink">
-                <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready</p>
-            </div>
+            <h1 class="ui-shadow ui-corner-all">Alarma GPS</h1>
             
             <table class="ui-shadow ui-corner-all ui-table">
                 <caption>Posición </caption>
                 <tbody>
-                    <tr>
-                        <td>Latitud</td>
-                        <td id="tdLat"></td>
-                    </tr>
-                    <tr>
-                        <td>Longitud</td>
-                        <td id="tdLon"></td>
-                    </tr>
+                    <tr><td>Latitud</td><td id="tdLat"></td></tr>
+                    <tr><td>Longitud</td><td id="tdLon"></td></tr>
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td id="tdError" colspan=2 style="text-align: center">No cargado...</td>
-                    </tr>
+                    <tr><td id="tdError" colspan=2 style="text-align: center">No cargado...</td></tr>
                 </tfoot>
             </table>
             
@@ -73,7 +61,14 @@
                 <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
                     <caption>Alarmas guardadas (presionar número para borrar)</caption>
                     <thead>
-                        <tr><td>N°</td><td>Latitud</td><td>Longitud</td><td>Descripción</td><td>Distancia (m)</td><td>Activo</td></tr>
+                        <tr>
+                            <td>N°</td>
+                            <td>Latitud</td>
+                            <td>Longitud</td>
+                            <td>Descripción</td>
+                            <td>Distancia (m)</td>
+                            <td>Activo</td>
+                        </tr>
                     </thead>
                     <tbody id="tbodyAlarmas">
                     </tbody>
