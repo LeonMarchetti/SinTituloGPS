@@ -282,7 +282,7 @@ function onWatchPosition(pos)
     var latitud_actual  = pos.coords.latitude;
     var longitud_actual = pos.coords.longitude;
     
-//    console.log(`(${latitud_actual}, ${longitud_actual})`);
+    console.log(`(${latitud_actual}, ${longitud_actual})`);
     
     $("#tdLat").text(latitud_actual);
     $("#tdLon").text(longitud_actual);
@@ -350,7 +350,7 @@ function onWatchPositionError(error)
             codigo = "Tiempo agotado";
             break;
     }
-    $("#tdError").text(codigo + " - " + error.message);
+    $("#tdError").text(`${codigo} - ${error.message}`);
 }
 
 function iniciarWatch()
