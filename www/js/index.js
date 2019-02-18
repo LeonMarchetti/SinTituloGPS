@@ -10,8 +10,7 @@ var sql_ins_pos      = "Insert Into Posicion(latitud,longitud,descripcion,distan
 
 // SQL: actualizacion de alarmas
 var sql_upd_pos_act  = "Update Posicion Set activo = ? Where id = ?";
-var sql_upd_pos_lat  = "Update Posicion Set latitud = ? Where id = ?";
-var sql_upd_pos_lon  = "Update Posicion Set longitud = ? Where id = ?";
+var sql_upd_pos      = "Update Posicion Set latitud = ?, longitud = ? Where id = ?";
 var sql_upd_pos_desc = "Update Posicion Set descripcion = ? Where id = ?";
 var sql_upd_pos_dist = "Update Posicion Set distancia = ? Where id = ?";
 
@@ -33,9 +32,8 @@ function habilitarGuardar()
     $("#divGuardar").show();
     $("#btnGuardar").prop("disabled", true);
     
-    // Valores iniciales para guardar:
-    $("#inGuardarLat").val($("#tdLat").text());
-    $("#inGuardarLon").val($("#tdLon").text());
+    // Valores iniciales para input de guardar:
+    $("#inGuardarPos").val(`${$("#tdLat").text()}, ${$("#tdLon").text()}`);
     
     $("html, body").animate(
     {
@@ -45,8 +43,9 @@ function habilitarGuardar()
 
 function guardarAlarma()
 {
-    var latitud     = $("#inGuardarLat").val();
-    var longitud    = $("#inGuardarLon").val();
+    var posicion = $("#inGuardarPos").val().split(", ");
+    var latitud     = posicion[0];
+    var longitud    = posicion[1];
     var descripcion = $("#inGuardarDesc").val();
     var distancia   = $("#inGuardarDist").val();
     var activo      = $("#inGuardarActivo").prop("checked") ? 1 : 0;
@@ -97,11 +96,11 @@ function llenarTablaAlarmas(tx, rs)
     for (var i = 0; i < rs.rows.length; i++)
     {
         var marcar = (rs.rows.item(i).activo) ? "checked=\"checked\"" : "";
+        var posicion = `${rs.rows.item(i).latitud}, ${rs.rows.item(i).longitud}`;
         celdas += 
             "<tr>" +
             "<td class=\"alarmaId\">" + rs.rows.item(i).id + "</td>" +
-            "<td><input type=\"number\" class=\"alarmaLat\" value=\"" + rs.rows.item(i).latitud + "\"/></td>" +
-            "<td><input type=\"number\" class=\"alarmaLon\" value=\"" + rs.rows.item(i).longitud + "\"/></td>" +
+            "<td><input class=\"alarmaPos\" value=\"" + posicion + "\"/></td>" +
             "<td><input class=\"alarmaDesc\" value=\"" + rs.rows.item(i).descripcion + "\"/></td>" +
             "<td><input type=\"number\" class=\"alarmaDist\" value=\"" + rs.rows.item(i).distancia + "\"/></td>" +
             "<td><input type=\"checkbox\" class=\"alternarAlarma\"" + marcar + " /></td>" +
@@ -112,8 +111,7 @@ function llenarTablaAlarmas(tx, rs)
     
     $("#tbodyAlarmas .alarmaId").click(borrarAlarma);
     $("#tbodyAlarmas .alternarAlarma").change(cambiarEstado);
-    $("#tbodyAlarmas .alarmaLat").change(cambiarLatitud);
-    $("#tbodyAlarmas .alarmaLon").change(cambiarLongitud);
+    $("#tbodyAlarmas .alarmaPos").change(cambiarPosicion);
     $("#tbodyAlarmas .alarmaDesc").change(cambiarDescripcion);
     $("#tbodyAlarmas .alarmaDist").change(cambiarDistancia);
 }
@@ -173,41 +171,24 @@ function cambiarEstado(e)
         manejarError, 
         () =>
         {
-            console.log("Actualizado: id=" + id + ", activo=" + activo);
+            console.log(`Actualizado: id=${id}, activo=${activo}`);
         });
 }
 
-function cambiarLatitud(e)
+function cambiarPosicion(e)
 {
-    var lat_nueva = $(e.target).val();
+    var pos_nueva = $(e.target).val().split(", ");
     var id        = $(e.target).parent().parent().children(".alarmaId").text();
     
     db.transaction(
         (tx) =>
         {
-            tx.executeSql(sql_upd_pos_lat, [lat_nueva, id]);
+            tx.executeSql(sql_upd_pos, [pos_nueva[0], pos_nueva[1], id]);
         }, 
         manejarError, 
         () => 
         {
-            console.log("Actualizado: id=" + id + ", latitud=" + lat_nueva);
-        });
-}
-
-function cambiarLongitud(e)
-{
-    var lon_nueva = $(e.target).val();
-    var id        = $(e.target).parent().parent().children(".alarmaId").text();
-    
-    db.transaction(
-        (tx) =>
-        {
-            tx.executeSql(sql_upd_pos_lon, [lon_nueva, id]);
-        }, 
-        manejarError, 
-        () => 
-        {
-            console.log("Actualizado: id=" + id + ", longitud=" + lon_nueva);
+            console.log(`Actualizado: id=${id}, pos=(${pos_nueva[0]}, ${pos_nueva[1]})`);
         });
 }
 
@@ -224,7 +205,7 @@ function cambiarDescripcion(e)
         manejarError, 
         () => 
         {
-            console.log("Actualizado: id=" + id + ", descripcion=" + desc_nueva);
+            console.log(`Actualizado: id=${id}, descripcion=${desc_nueva}`);
         });
 }
 
@@ -241,7 +222,7 @@ function cambiarDistancia(e)
         manejarError, 
         () => 
         {
-            console.log("Actualizado: id=" + id + ", distancia=" + dist_nueva);
+            console.log(`Actualizado: id=${id}, distancia=${dist_nueva}`);
         });
 }
 
