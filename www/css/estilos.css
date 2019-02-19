@@ -12,3 +12,15 @@
 {
 	width: 100%;
 }
+
+#divBotones, #divGuardar
+{
+	width:        auto;
+	margin-left:  15px;
+	margin-right: 15px;
+}
+
+#divAlarmas
+{
+	overflow-x: auto;
+}
