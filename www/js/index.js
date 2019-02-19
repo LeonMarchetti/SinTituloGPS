@@ -381,10 +381,6 @@ $(document).ready(() =>
 	        (error) =>
             {
                 console.log(error.message); 
-            }, 
-	        () => 
-            { 
-                console.log("Base de datos inicializada"); 
             });
 		
 	    $("#btnIniciar").click(iniciarWatch);
