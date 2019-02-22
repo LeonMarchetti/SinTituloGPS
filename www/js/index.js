@@ -363,10 +363,18 @@ function terminarWatch()
 
 $(document).ready(() =>
 {	
-    console.log("Cordova está listo...");
+    console.log("El documento esta listo.");
     
 	$(document).bind("deviceready", () =>
-	{	    
+	{
+	    console.log("Cordova esta listo.");
+	    
+	    $(document).on("pause", function()
+        {
+	        navigator.notification.alert("La aplicación va a quedar en segundo plano y no va a alertarte sobre cambios en la ubicación...", null, "Alarma GPS");
+        });
+	    
+	    // Base de datos SQLite:
 	    db = window.sqlitePlugin.openDatabase(
         {
             name:     "alarmas.db",
@@ -382,7 +390,8 @@ $(document).ready(() =>
             {
                 console.log(error.message); 
             });
-		
+	    
+	    // Botones:
 	    $("#btnIniciar").click(iniciarWatch);
 	    $("#btnDetener").click(terminarWatch);
 	    $("#btnGuardar").click(habilitarGuardar);
@@ -391,13 +400,13 @@ $(document).ready(() =>
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    
-	    /*$("#btnPrueba").click(() =>
+	    /* Prueba: *
+	    $("#btnPrueba").click(() =>
 	    {
 	        // Limpiar lista de ids en caché:
 	        ids = [];
 	        console.log(`ids vacio: ${JSON.stringify(ids)}`);
-	    });*/
-	    
-	    // Prueba:
+	    });
+	    //*/
 	});
 });
