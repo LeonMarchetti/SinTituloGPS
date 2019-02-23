@@ -80,6 +80,8 @@ function mostrarAlarmas()
 
 function llenarTablaAlarmas(tx, rs)
 {
+    console.log(`Select Posicion: ${rs.rows.length} filas encontradas.`);
+    
     var celdas = "";
     for (var i = 0; i < rs.rows.length; i++)
     {
@@ -263,6 +265,8 @@ function onWatchPosition(pos)
             sql_sel_pos_act, [],
             (tx, rs) =>
             {
+                console.log(`Select Posicion: ${rs.rows.length} filas encontradas.`);
+                
                 for (var i = 0; i < rs.rows.length; i++)
                 {
                     var alarma = rs.rows.item(i);
