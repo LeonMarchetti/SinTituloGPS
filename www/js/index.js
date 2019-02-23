@@ -2,18 +2,6 @@ var watchID          = null;
 var db               = null;
 var ids              = [];
 
-var sql_crear_tabla  = "Create Table If Not Exists Posicion(id Integer Primary Key,latitud Float Not Null,longitud Float Not Null,descripcion Text Default \"\",distancia Float Default 0,activo Integer Default True);";
-var sql_drop_tabla   = "Drop Table Posicion";
-var sql_sel_pos_all  = "Select * From Posicion";
-var sql_sel_pos_act  = "Select * From Posicion Where activo = 1";
-var sql_ins_pos      = "Insert Into Posicion(latitud,longitud,descripcion,distancia,activo)Values(?,?,?,?,?)";
-
-// SQL: actualizacion de alarmas
-var sql_upd_pos_act  = "Update Posicion Set activo = ? Where id = ?";
-var sql_upd_pos      = "Update Posicion Set latitud = ?, longitud = ? Where id = ?";
-var sql_upd_pos_desc = "Update Posicion Set descripcion = ? Where id = ?";
-var sql_upd_pos_dist = "Update Posicion Set distancia = ? Where id = ?";
-
 // Errores: ====================================================================
 function manejarError(error) 
 {
@@ -368,11 +356,6 @@ $(document).ready(() =>
 	$(document).bind("deviceready", () =>
 	{
 	    console.log("Cordova esta listo.");
-	    
-	    $(document).on("pause", function()
-        {
-	        navigator.notification.alert("La aplicación va a quedar en segundo plano y no va a alertarte sobre cambios en la ubicación...", null, "Alarma GPS");
-        });
 	    
 	    // Base de datos SQLite:
 	    db = window.sqlitePlugin.openDatabase(
