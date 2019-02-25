@@ -1,85 +1,83 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <!--
-        Customize this policy to fit your own app's needs. For more guidance, see:
-            https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
-        Some notes:
-            * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
-            * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
-            * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
-                * Enable inline JS: add 'unsafe-inline' to default-src
-        -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
-        <meta name="format-detection" content="telephone=no">
-        <meta name="msapplication-tap-highlight" content="no">
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
-        <meta charset="utf-8">
-        <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
-        <!-- <link rel="stylesheet" type="text/css" href="css/index.css"> -->
-        <link rel="stylesheet" type="text/css" href="css/estilos.css">
-        <title>Hello World</title>
-    </head>
-    <body>
-        <div class="app">
-            <h1 class="ui-shadow ui-corner-all">Alarma GPS</h1>
-            
-            <table class="ui-shadow ui-corner-all ui-table">
-                <caption>Posición </caption>
-                <tbody>
-                    <tr><td>Latitud</td><td id="tdLat"></td></tr>
-                    <tr><td>Longitud</td><td id="tdLon"></td></tr>
-                </tbody>
-                <tfoot>
-                    <tr><td id="tdError" colspan=2 style="text-align: center">No cargado...</td></tr>
-                </tfoot>
-            </table>
-            
-            <div id="divBotones" class="ui-overlay-shadow ui-corner-all">
-                <button id="btnIniciar" data-icon="navigation" data-theme="b">Iniciar</button>
-                <button id="btnDetener" style="display: none" data-icon="navigation" data-theme="b">Detener</button>
-                <button id="btnGuardar" data-icon="navigation" data-theme="b">Guardar</button>
-                <button id="btnMostrar" data-icon="navigation" data-theme="b">Mostrar Alarmas</button>
-                <button id="btnOcultar" style="display: none" data-icon="navigation" data-theme="b">Ocultar Alarmas</button>
-            </div>
-            
-            <div id="divGuardar" style="display: none">
-                <h3>Guardar ubicación</h3>
-                <input id="inGuardarPos" placeholder="Latitud, Longitud"/>
-                <input id="inGuardarDesc" placeholder="Descripción"/>
-                <input id="inGuardarDist" type="number" placeholder="Distancia (metros)"/>
-                <label>
-                    <input id="inGuardarActivo" type="checkbox" placeholder="Descripción" name="activo" checked="checked">
-                    Activo
-                </label>
-                <button id="btnGuardarCancelar" data-theme="b">Cancelar</button>
-                <button id="btnGuardarGuardar" data-theme="b">Guardar</button>
-            </div>
-            
-            <div id="divAlarmas" style="display: none">
-                <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
-                    <caption>Alarmas guardadas (presionar número para borrar)</caption>
-                    <thead>
-                        <tr>
-                            <td>N°</td>
-                            <td>Posición</td>
-                            <td>Descripción</td>
-                            <td>Distancia (m)</td>
-                            <td>Activo</td>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyAlarmas">
-                    </tbody>
-                </table>
-            </div>
+
+<head>
+    <!--
+    Customize this policy to fit your own app's needs. For more guidance, see:
+        https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+    Some notes:
+        * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+        * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+        * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+            * Enable inline JS: add 'unsafe-inline' to default-src
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="css/index.css"> -->
+    <link rel="stylesheet" type="text/css" href="css/estilos.css">
+    <title>Hello World</title>
+</head>
+
+<body>
+    <div class="app">
+        <h1 class="ui-shadow ui-corner-all">Alarma GPS</h1>
         
-            <!-- <button id="btnPrueba" style="width: 100%">Prueba</button> -->    
+        <div id="divVuePos">
+            <b>Posicion:</b> {{ latitud }}, {{ longitud }}
+            <b v-if="error">Error:</b> {{ error }}
         </div>
         
-        <script src="js/jquery.min.js"></script>
-        <script src="js/jquery.mobile-1.4.5.min.js"></script>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/consultas_sql.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
-    </body>
+        <div id="divBotones" class="ui-overlay-shadow ui-corner-all">
+            <button id="btnIniciar" data-icon="navigation" data-theme="b">Iniciar</button>
+            <button id="btnDetener" style="display: none" data-icon="navigation" data-theme="b">Detener</button>
+            <button id="btnGuardar" data-icon="navigation" data-theme="b">Guardar</button>
+            <button id="btnMostrar" data-icon="navigation" data-theme="b">Mostrar Alarmas</button>
+            <button id="btnOcultar" style="display: none" data-icon="navigation" data-theme="b">Ocultar Alarmas</button>
+        </div>
+        
+        <div id="divGuardar" style="display: none">
+            <h3>Guardar ubicación</h3>
+            <input id="inGuardarPos" placeholder="Latitud, Longitud"/>
+            <input id="inGuardarDesc" placeholder="Descripción"/>
+            <input id="inGuardarDist" type="number" placeholder="Distancia (metros)"/>
+            <label>
+                <input id="inGuardarActivo" type="checkbox" placeholder="Descripción" name="activo" checked="checked">
+                Activo
+            </label>
+            <button id="btnGuardarCancelar" data-theme="b">Cancelar</button>
+            <button id="btnGuardarGuardar" data-theme="b">Guardar</button>
+        </div>
+        
+        <div id="divAlarmas" style="display: none">
+            <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
+                <caption>Alarmas guardadas (presionar número para borrar)</caption>
+                <thead>
+                    <tr>
+                        <td>N°</td>
+                        <td>Posición</td>
+                        <td>Descripción</td>
+                        <td>Distancia (m)</td>
+                        <td>Activo</td>
+                    </tr>
+                </thead>
+                <tbody id="tbodyAlarmas">
+                </tbody>
+            </table>
+        </div>
+    
+        <button id="btnPrueba" style="width: 100%">Prueba</button>    
+    </div>
+    
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+    <script type="text/javascript" src="js/consultas_sql.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+</body>
+    
 </html>

@@ -1,6 +1,38 @@
-var watchID          = null;
-var db               = null;
-var ids              = [];
+const app = new Vue(
+{
+    el: "#divVuePos",
+    data:
+    {
+        latitud: null,
+        longitud: null,
+        error: "",
+        ids: [],
+        watchID: null,
+        db: null
+    },
+    methods:
+    {
+        init: () =>
+        {
+            // Iniciar base de datos:
+            db = window.sqlitePlugin.openDatabase(
+            {
+                name:     "alarmas.db",
+                location: "default"
+            });
+            
+            db.transaction(
+                (tx) => 
+                {
+                    tx.executeSql(sql_crear_tabla); 
+                },
+                (error) =>
+                {
+                    console.log(error.message); 
+                });
+        }
+    }
+});
 
 // Errores: ====================================================================
 function manejarError(error) 
@@ -21,7 +53,7 @@ function habilitarGuardar()
     $("#btnGuardar").prop("disabled", true);
     
     // Valores iniciales para input de guardar:
-    $("#inGuardarPos").val(`${$("#tdLat").text()}, ${$("#tdLon").text()}`);
+    $("#inGuardarPos").val(`${app.latitud}, ${app.longitud}`);
     
     $("html, body").animate(
     {
@@ -31,7 +63,7 @@ function habilitarGuardar()
 
 function guardarAlarma()
 {
-    var posicion = $("#inGuardarPos").val().split(", ");
+    var posicion    = $("#inGuardarPos").val().split(", ");
     var latitud     = posicion[0];
     var longitud    = posicion[1];
     var descripcion = $("#inGuardarDesc").val();
@@ -78,10 +110,20 @@ function mostrarAlarmas()
     }, 500);
 }
 
+function consultarAlarmas()
+{
+    $("#tbodyAlarmas").empty();
+    
+    db.transaction(
+        (tx) => 
+        {
+            tx.executeSql(sql_sel_pos_all, [], llenarTablaAlarmas, manejarErrorTransaccion);
+        },
+        manejarErrorTransaccion);
+}
+
 function llenarTablaAlarmas(tx, rs)
 {
-    console.log(`Select Posicion: ${rs.rows.length} filas encontradas.`);
-    
     var celdas = "";
     for (var i = 0; i < rs.rows.length; i++)
     {
@@ -104,18 +146,6 @@ function llenarTablaAlarmas(tx, rs)
     $("#tbodyAlarmas .alarmaPos").change(cambiarPosicion);
     $("#tbodyAlarmas .alarmaDesc").change(cambiarDescripcion);
     $("#tbodyAlarmas .alarmaDist").change(cambiarDistancia);
-}
-
-function consultarAlarmas()
-{
-    $("#tbodyAlarmas").empty();
-    
-    db.transaction(
-        (tx) => 
-        {
-            tx.executeSql(sql_sel_pos_all, [], llenarTablaAlarmas, manejarErrorTransaccion);
-        },
-        manejarErrorTransaccion);
 }
 
 function ocultarAlarmas()
@@ -190,7 +220,7 @@ function cambiarDescripcion(e)
     db.transaction(
         (tx) =>
         {
-            tx.executeSql(sql_upd_pos_lat, [desc_nueva, id]);
+            tx.executeSql(sql_upd_pos_desc, [desc_nueva, id]);
         }, 
         manejarError, 
         () => 
@@ -207,7 +237,7 @@ function cambiarDistancia(e)
     db.transaction(
         (tx) =>
         {
-            tx.executeSql(sql_upd_pos_lat, [dist_nueva, id]);
+            tx.executeSql(sql_upd_pos_dist, [dist_nueva, id]);
         }, 
         manejarError, 
         () => 
@@ -249,15 +279,12 @@ function distancia(lat1, lon1, lat2, lon2)
 
 // watchPosition ===============================================================
 function onWatchPosition(pos)
-{
-    var latitud_actual  = pos.coords.latitude;
-    var longitud_actual = pos.coords.longitude;
+{    
+    app.latitud  = pos.coords.latitude;
+    app.longitud = pos.coords.longitude;
+    app.error    = "";
     
-    console.log(`(${latitud_actual}, ${longitud_actual})`);
-    
-    $("#tdLat").text(latitud_actual);
-    $("#tdLon").text(longitud_actual);
-    $("#tdError").text("");
+//    console.log(`(${app.latitud}, ${app.longitud})`);
     
     db.transaction((tx) =>
     {
@@ -265,13 +292,11 @@ function onWatchPosition(pos)
             sql_sel_pos_act, [],
             (tx, rs) =>
             {
-                console.log(`Select Posicion: ${rs.rows.length} filas encontradas.`);
-                
                 for (var i = 0; i < rs.rows.length; i++)
                 {
                     var alarma = rs.rows.item(i);
                     var d      = distancia(
-                                     latitud_actual, longitud_actual,
+                                     app.latitud, app.longitud,
                                      alarma.latitud, alarma.longitud);
             
                     if (d <= (alarma.distancia / 1000))
@@ -282,11 +307,12 @@ function onWatchPosition(pos)
                         * la alarma y entonces tengo que lanzar la 
                         * notificación.
                         */
-                        if (!ids.includes(alarma.id)) 
+//                        console.log(`Alarma cerca: ${alarma.id}`);
+                        if (!app.ids.includes(alarma.id)) 
                         {
+                            console.log("Alarma encontrada: id=" + alarma.id);
                             notificar("Alarma GPS", alarma.descripcion);
-                            console.log(`Posicion encontrada: id=${alarma.id}`);
-                            ids.push(alarma.id);
+                            app.ids.push(alarma.id);
                         }
                     }
                     else
@@ -296,10 +322,10 @@ function onWatchPosition(pos)
                         * entonces significa que acabo de salir de la zona 
                         * de la alarma y puedo sacar el id de la lista.
                         */
-                        var j = ids.indexOf(alarma.id);
+                        var j = app.ids.indexOf(alarma.id);
                         if (j > -1)
                         {
-                            ids.splice(j, 1);
+                            app.ids.splice(j, 1);
                         }
                     }
                 }
@@ -323,7 +349,7 @@ function onWatchPositionError(error)
             codigo = "Tiempo agotado";
             break;
     }
-    $("#tdError").text(`${codigo} - ${error.message}`);
+    app.error = `${codigo} - ${error.message}`;
 }
 
 function iniciarWatch()
@@ -331,7 +357,9 @@ function iniciarWatch()
     $("#btnIniciar").hide();
     $("#btnDetener").show();
     
-    watchID = navigator.geolocation.watchPosition(
+    console.log("app.ids: " + JSON.stringify(app.ids));
+    
+    app.watchID = navigator.geolocation.watchPosition(
         onWatchPosition, 
         onWatchPositionError, 
         {
@@ -339,8 +367,7 @@ function iniciarWatch()
             enableHighAccuracy: true,
             maximumAge:         1000
         }); 
-    
-    console.log(`watchPosition iniciado para id=${watchID}`);
+    console.log(`watchPosition iniciado para id=${app.watchID}`);
 }
 
 function terminarWatch()
@@ -348,9 +375,10 @@ function terminarWatch()
     $("#btnIniciar").show();
     $("#btnDetener").hide();
     
-    navigator.geolocation.clearWatch(watchID);
-    console.log("watchPosition terminado para ID=" + watchID);
-    watchID = null;
+    navigator.geolocation.clearWatch(app.watchID);
+    console.log("watchPosition terminado para ID=" + app.watchID);
+    app.watchID = null;
+    app.ids = [];
 }
 
 $(document).ready(() =>
@@ -361,22 +389,7 @@ $(document).ready(() =>
 	{
 	    console.log("Cordova esta listo.");
 	    
-	    // Base de datos SQLite:
-	    db = window.sqlitePlugin.openDatabase(
-        {
-            name:     "alarmas.db",
-            location: "default"
-        });
-	    
-	    db.transaction(
-	        (tx) => 
-	        {
-	            tx.executeSql(sql_crear_tabla); 
-            },
-	        (error) =>
-            {
-                console.log(error.message); 
-            });
+	    app.init();
 	    
 	    // Botones:
 	    $("#btnIniciar").click(iniciarWatch);
@@ -387,12 +400,12 @@ $(document).ready(() =>
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    
-	    /* Prueba: *
+	    /* Prueba: */
 	    $("#btnPrueba").click(() =>
 	    {
 	        // Limpiar lista de ids en caché:
-	        ids = [];
-	        console.log(`ids vacio: ${JSON.stringify(ids)}`);
+	        app.ids = [];
+	        console.log(`ids vacio: ${JSON.stringify(app.ids)}`);
 	    });
 	    //*/
 	});
