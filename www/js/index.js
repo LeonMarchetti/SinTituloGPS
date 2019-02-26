@@ -357,8 +357,6 @@ function iniciarWatch()
     $("#btnIniciar").hide();
     $("#btnDetener").show();
     
-    console.log("app.ids: " + JSON.stringify(app.ids));
-    
     app.watchID = navigator.geolocation.watchPosition(
         onWatchPosition, 
         onWatchPositionError, 
@@ -400,7 +398,7 @@ $(document).ready(() =>
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    
-	    /* Prueba: */
+	    /* Prueba: *
 	    $("#btnPrueba").click(() =>
 	    {
 	        // Limpiar lista de ids en caché:
