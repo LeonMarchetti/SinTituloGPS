@@ -8,7 +8,8 @@ const app = new Vue(
         error: "",
         ids: [],
         watchID: null,
-        db: null
+        db: null,
+        mostrar_alarmas: false
     },
     methods:
     {
@@ -98,16 +99,15 @@ function ocultarDivGuardarAlarma()
 // Alarmas guardadas ===========================================================
 function mostrarAlarmas()
 {
-    $("#divAlarmas").show();
-    $("#btnMostrar").hide();
-    $("#btnOcultar").show();
-    
-    consultarAlarmas();
-    
-    $("html, body").animate(
+    if (app.mostrar_alarmas = !app.mostrar_alarmas)
     {
-        scrollTop: ($("#divAlarmas").offset().top)
-    }, 500);
+        consultarAlarmas();
+        $("#btnMostrar").text("Ocultar Alarmas");
+    }
+    else
+    {
+        $("#btnMostrar").text("Mostrar Alarmas");
+    }
 }
 
 function consultarAlarmas()
@@ -146,13 +146,6 @@ function llenarTablaAlarmas(tx, rs)
     $("#tbodyAlarmas .alarmaPos").change(cambiarPosicion);
     $("#tbodyAlarmas .alarmaDesc").change(cambiarDescripcion);
     $("#tbodyAlarmas .alarmaDist").change(cambiarDistancia);
-}
-
-function ocultarAlarmas()
-{
-    $("#divAlarmas").hide();
-    $("#btnMostrar").show();
-    $("#btnOcultar").hide();
 }
 
 function borrarAlarma(e)
@@ -381,6 +374,7 @@ function terminarWatch()
 
 $(document).ready(() =>
 {	
+    console.log("=".repeat(80));
     console.log("El documento esta listo.");
     
 	$(document).bind("deviceready", () =>
@@ -394,7 +388,6 @@ $(document).ready(() =>
 	    $("#btnDetener").click(terminarWatch);
 	    $("#btnGuardar").click(habilitarGuardar);
 	    $("#btnMostrar").click(mostrarAlarmas);
-	    $("#btnOcultar").click(ocultarAlarmas);
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    

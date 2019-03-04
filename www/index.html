@@ -23,10 +23,10 @@
 </head>
 
 <body>
-    <div class="app">
+    <div id="divVuePos" class="app">
         <h1 class="ui-shadow ui-corner-all">Alarma GPS</h1>
         
-        <div id="divVuePos">
+        <div>
             <b>Posicion:</b> {{ latitud }}, {{ longitud }}
             <b v-if="error">Error:</b> {{ error }}
         </div>
@@ -36,7 +36,6 @@
             <button id="btnDetener" style="display: none" data-icon="navigation" data-theme="b">Detener</button>
             <button id="btnGuardar" data-icon="navigation" data-theme="b">Guardar</button>
             <button id="btnMostrar" data-icon="navigation" data-theme="b">Mostrar Alarmas</button>
-            <button id="btnOcultar" style="display: none" data-icon="navigation" data-theme="b">Ocultar Alarmas</button>
         </div>
         
         <div id="divGuardar" style="display: none">
@@ -52,16 +51,17 @@
             <button id="btnGuardarGuardar" data-theme="b">Guardar</button>
         </div>
         
-        <div id="divAlarmas" style="display: none">
+        <div id="divAlarmas" v-if="mostrar_alarmas">
+            {{ mostrar_alarmas }} <br>
             <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
                 <caption>Alarmas guardadas (presionar número para borrar)</caption>
                 <thead>
                     <tr>
-                        <td>N°</td>
-                        <td>Posición</td>
-                        <td>Descripción</td>
-                        <td>Distancia (m)</td>
-                        <td>Activo</td>
+                        <th>N°</th>
+                        <th>Posición</th>
+                        <th>Descripción</th>
+                        <th>Distancia (m)</th>
+                        <th>Activo</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyAlarmas">
