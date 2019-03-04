@@ -9,6 +9,7 @@ const app = new Vue(
         ids: [],
         watchID: null,
         db: null,
+        watch_iniciado: false,
         mostrar_alarmas: false
     },
     methods:
@@ -347,34 +348,32 @@ function onWatchPositionError(error)
 
 function iniciarWatch()
 {
-    $("#btnIniciar").hide();
-    $("#btnDetener").show();
-    
-    app.watchID = navigator.geolocation.watchPosition(
-        onWatchPosition, 
-        onWatchPositionError, 
-        {
-            timeout:            30000,
-            enableHighAccuracy: true,
-            maximumAge:         1000
-        }); 
-    console.log(`watchPosition iniciado para id=${app.watchID}`);
-}
-
-function terminarWatch()
-{
-    $("#btnIniciar").show();
-    $("#btnDetener").hide();
-    
-    navigator.geolocation.clearWatch(app.watchID);
-    console.log("watchPosition terminado para ID=" + app.watchID);
-    app.watchID = null;
-    app.ids = [];
+    if (app.watch_iniciado = !app.watch_iniciado)
+    {
+        $("#btnWatch").text("Detener");
+        app.watchID = navigator.geolocation.watchPosition(
+            onWatchPosition, 
+            onWatchPositionError, 
+            {
+                timeout:            30000,
+                enableHighAccuracy: true,
+                maximumAge:         1000
+            }); 
+        console.log(`watchPosition iniciado para id=${app.watchID}`);
+    }
+    else
+    {
+        $("#btnWatch").text("Iniciar");
+        navigator.geolocation.clearWatch(app.watchID);
+        console.log(`watchPosition terminado para id=${app.watchID}`);
+        app.watchID = null;
+        app.ids = [];
+    }
 }
 
 $(document).ready(() =>
 {	
-    console.log("=".repeat(80));
+    console.log("=".repeat(72));
     console.log("El documento esta listo.");
     
 	$(document).bind("deviceready", () =>
@@ -384,10 +383,10 @@ $(document).ready(() =>
 	    app.init();
 	    
 	    // Botones:
-	    $("#btnIniciar").click(iniciarWatch);
-	    $("#btnDetener").click(terminarWatch);
+	    $("#btnWatch").click(iniciarWatch);
 	    $("#btnGuardar").click(habilitarGuardar);
 	    $("#btnMostrar").click(mostrarAlarmas);
+	    
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    
