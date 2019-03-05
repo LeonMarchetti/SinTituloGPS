@@ -16,10 +16,12 @@
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
     <meta charset="utf-8">
+    
+    <!-- css -->
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
-    <!-- <link rel="stylesheet" type="text/css" href="css/index.css"> -->
-    <link rel="stylesheet" type="text/css" href="css/estilos.css">
-    <title>Hello World</title>
+    <!-- <link rel="stylesheet" href="css/index.css"> -->
+    <link rel="stylesheet" href="css/estilos.css">
+    <title>Alarma GPS</title>
 </head>
 
 <body>
@@ -51,7 +53,6 @@
         </div>
         
         <div id="divAlarmas" v-if="mostrar_alarmas">
-            {{ mostrar_alarmas }} <br>
             <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
                 <caption>Alarmas guardadas (presionar número para borrar)</caption>
                 <thead>
@@ -64,6 +65,13 @@
                     </tr>
                 </thead>
                 <tbody id="tbodyAlarmas">
+                    <tr v-for="alarma in alarmas">
+                        <td class="alarmaId">{{ alarma.id }}</td>
+                        <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
+                        <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
+                        <td><input type="number" class="alarmaDist" :value="alarma.distancia"/></td>
+                        <td><input type="checkbox" class="alternarAlarma" v-model="alarma.activo"/></td>
+                    </tr>
                 </tbody>
             </table>
         </div>

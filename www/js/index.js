@@ -10,7 +10,9 @@ const app = new Vue(
         watchID: null,
         db: null,
         watch_iniciado: false,
-        mostrar_alarmas: false
+        mostrar_alarmas: false,
+        
+        alarmas: []
     },
     methods:
     {
@@ -118,29 +120,21 @@ function consultarAlarmas()
     db.transaction(
         (tx) => 
         {
-            tx.executeSql(sql_sel_pos_all, [], llenarTablaAlarmas, manejarErrorTransaccion);
+            tx.executeSql(
+                sql_sel_pos_all, [], 
+                llenarTablaAlarmas, 
+                manejarErrorTransaccion);
         },
         manejarErrorTransaccion);
 }
 
 function llenarTablaAlarmas(tx, rs)
 {
-    var celdas = "";
+    app.alarmas = [];
     for (var i = 0; i < rs.rows.length; i++)
     {
-        var marcar = (rs.rows.item(i).activo) ? "checked=\"checked\"" : "";
-        var posicion = `${rs.rows.item(i).latitud}, ${rs.rows.item(i).longitud}`;
-        celdas += 
-            "<tr>" +
-            "<td class=\"alarmaId\">" + rs.rows.item(i).id + "</td>" +
-            "<td><input class=\"alarmaPos\" value=\"" + posicion + "\"/></td>" +
-            "<td><input class=\"alarmaDesc\" value=\"" + rs.rows.item(i).descripcion + "\"/></td>" +
-            "<td><input type=\"number\" class=\"alarmaDist\" value=\"" + rs.rows.item(i).distancia + "\"/></td>" +
-            "<td><input type=\"checkbox\" class=\"alternarAlarma\"" + marcar + " /></td>" +
-            "</tr>";
+        app.alarmas.push(rs.rows.item(i));
     }
-    
-    $("#tbodyAlarmas").append(celdas);
     
     $("#tbodyAlarmas .alarmaId").click(borrarAlarma);
     $("#tbodyAlarmas .alternarAlarma").change(cambiarEstado);
@@ -389,6 +383,11 @@ $(document).ready(() =>
 	    
 	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
+	    
+	    $(document).bind("pause", () => 
+	    { 
+	        console.log("Aplicacion pausada"); 
+        });
 	    
 	    /* Prueba: *
 	    $("#btnPrueba").click(() =>
