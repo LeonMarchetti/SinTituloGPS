@@ -12,6 +12,9 @@ const app = new Vue(
         watch_iniciado: false,
         mostrar_alarmas: false,
         
+        accion_watch: "Iniciar",
+        accion_alarmas: "Mostrar",
+        
         alarmas: []
     },
     methods:
@@ -105,11 +108,11 @@ function mostrarAlarmas()
     if (app.mostrar_alarmas = !app.mostrar_alarmas)
     {
         consultarAlarmas();
-        $("#btnMostrar").text("Ocultar Alarmas");
+        app.accion_alarmas = "Ocultar";
     }
     else
     {
-        $("#btnMostrar").text("Mostrar Alarmas");
+        app.accion_alarmas = "Mostrar";
     }
 }
 
@@ -344,7 +347,7 @@ function iniciarWatch()
 {
     if (app.watch_iniciado = !app.watch_iniciado)
     {
-        $("#btnWatch").text("Detener");
+        app.accion_watch = "Detener";
         app.watchID = navigator.geolocation.watchPosition(
             onWatchPosition, 
             onWatchPositionError, 
@@ -357,7 +360,7 @@ function iniciarWatch()
     }
     else
     {
-        $("#btnWatch").text("Iniciar");
+        app.accion_watch = "Iniciar";
         navigator.geolocation.clearWatch(app.watchID);
         console.log(`watchPosition terminado para id=${app.watchID}`);
         app.watchID = null;

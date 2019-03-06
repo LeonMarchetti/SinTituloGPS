@@ -34,9 +34,9 @@
         </div>
         
         <div id="divBotones" class="ui-overlay-shadow ui-corner-all">
-            <button id="btnWatch" data-icon="navigation" data-theme="b">Iniciar</button>
+            <button id="btnWatch" data-icon="navigation" data-theme="b">{{ accion_watch }}</button>
             <button id="btnGuardar" data-icon="navigation" data-theme="b">Guardar</button>
-            <button id="btnMostrar" data-icon="navigation" data-theme="b">Mostrar Alarmas</button>
+            <button id="btnMostrar" data-icon="navigation" data-theme="b">{{ accion_alarmas }} Alarmas</button>
         </div>
         
         <div id="divGuardar" style="display: none">
@@ -65,7 +65,7 @@
                     </tr>
                 </thead>
                 <tbody id="tbodyAlarmas">
-                    <tr v-for="alarma in alarmas">
+                    <tr v-for="alarma in alarmas" :key="alarma.id" >
                         <td class="alarmaId">{{ alarma.id }}</td>
                         <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
                         <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
