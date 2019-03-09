@@ -26,34 +26,27 @@
 
 <body>
     <div id="divVuePos" class="app">
-        <h1 class="ui-shadow ui-corner-all">Alarma GPS</h1>
+        <div data-role="header" data-theme="b">
+            <h1>Alarma GPS</h1>
+        </div>
         
-        <div>
+        <div data-role="content" data-theme="b">
             <b>Posicion:</b> {{ latitud }}, {{ longitud }}
             <b v-if="error">Error:</b> {{ error }}
         </div>
         
-        <div id="divBotones" class="ui-overlay-shadow ui-corner-all">
-            <button id="btnWatch" data-icon="navigation" data-theme="b">{{ accion_watch }}</button>
-            <button id="btnGuardar" data-icon="navigation" data-theme="b">Guardar</button>
-            <button id="btnMostrar" data-icon="navigation" data-theme="b">{{ accion_alarmas }} Alarmas</button>
-        </div>
-        
-        <div id="divGuardar" style="display: none">
-            <h3>Guardar ubicación</h3>
-            <input id="inGuardarPos" placeholder="Latitud, Longitud"/>
-            <input id="inGuardarDesc" placeholder="Descripción"/>
-            <input id="inGuardarDist" type="number" placeholder="Distancia (metros)"/>
-            <label>
-                <input id="inGuardarActivo" type="checkbox" placeholder="Descripción" name="activo" checked="checked">
-                Activo
-            </label>
-            <button id="btnGuardarCancelar" data-theme="b">Cancelar</button>
-            <button id="btnGuardarGuardar" data-theme="b">Guardar</button>
+        <div id="divBotones" 
+            class="ui-overlay-shadow ui-corner-all" 
+            data-role="controlgroup" 
+            data-theme="b">
+            
+            <button id="btnWatch" data-icon="arrow-r">{{ accion_watch }}</button>
+            <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar</a>
+            <button id="btnMostrar" data-icon="info">{{ accion_alarmas }} Alarmas</button>
         </div>
         
         <div id="divAlarmas" v-if="mostrar_alarmas">
-            <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
+            <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table" data-role="table">
                 <caption>Alarmas guardadas (presionar número para borrar)</caption>
                 <thead>
                     <tr>
@@ -74,6 +67,34 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+        
+        <div id="divPanelGuardar" class="ui-panel ui-panel-position-left ui-panel-display-overlay ui-panel-animate ui-body-b" 
+            data-role="panel">
+            
+            <div data-role="header" data-theme="b">
+                <h1>Guardar ubicación</h1>
+            </div>
+            
+            <div data-role="controlgroup" class="ui-body-b">
+                <input id="inGuardarPos" placeholder="Latitud, Longitud"/>
+                <input id="inGuardarDesc" placeholder="Descripción"/>
+                <input id="inGuardarDist" type="number" placeholder="Distancia (metros)"/>
+                <label>
+                    <input id="inGuardarActivo" type="checkbox" placeholder="Descripción" name="activo" checked="checked">
+                    Activo
+                </label>
+            </div>
+            
+            <div data-role="controlgroup" data-theme="b">
+                <a href="#divVuePos" 
+                    data-rel="close" 
+                    data-role="button">
+                    
+                    Cancelar
+                </a>
+                <button id="btnGuardarGuardar">Guardar</button>
+            </div>
         </div>
     
         <!-- <button id="btnPrueba" style="width: 100%">Prueba</button> -->    

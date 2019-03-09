@@ -53,21 +53,6 @@ function manejarErrorTransaccion(tx, error)
 }
 
 // Guardar alarma ==============================================================
-function habilitarGuardar()
-{
-    // Mostrar elementos:
-    $("#divGuardar").show();
-    $("#btnGuardar").prop("disabled", true);
-    
-    // Valores iniciales para input de guardar:
-    $("#inGuardarPos").val(`${app.latitud}, ${app.longitud}`);
-    
-    $("html, body").animate(
-    {
-        scrollTop: ($("#divGuardar").offset().top)
-    }, 500);
-}
-
 function guardarAlarma()
 {
     var posicion    = $("#inGuardarPos").val().split(", ");
@@ -88,18 +73,12 @@ function guardarAlarma()
             console.log("Insercion OK");
             consultarAlarmas();
         });
-    ocultarDivGuardarAlarma()
-}
-
-function cancelarGuardarAlarma()
-{
-    ocultarDivGuardarAlarma()
-}
-
-function ocultarDivGuardarAlarma()
-{
-    $("#divGuardar").hide();
-    $("#btnGuardar").prop("disabled", false);
+    
+    $("#divPanelGuardar").panel("close");
+    
+    $("#inGuardarDesc").val("");
+    $("#inGuardarDist").val("");
+    $("#inGuardarActivo").prop("checked", true);
 }
 
 // Alarmas guardadas ===========================================================
@@ -275,7 +254,7 @@ function onWatchPosition(pos)
     app.longitud = pos.coords.longitude;
     app.error    = "";
     
-//    console.log(`(${app.latitud}, ${app.longitud})`);
+    console.log(`(${app.latitud}, ${app.longitud})`);
     
     db.transaction((tx) =>
     {
@@ -373,6 +352,11 @@ $(document).ready(() =>
     console.log("=".repeat(72));
     console.log("El documento esta listo.");
     
+    $("#aPanelGuardar").click(() => 
+    {
+        $("#inGuardarPos").val(app.latitud + ", " + app.longitud);
+    });
+    
 	$(document).bind("deviceready", () =>
 	{
 	    console.log("Cordova esta listo.");
@@ -381,10 +365,7 @@ $(document).ready(() =>
 	    
 	    // Botones:
 	    $("#btnWatch").click(iniciarWatch);
-	    $("#btnGuardar").click(habilitarGuardar);
 	    $("#btnMostrar").click(mostrarAlarmas);
-	    
-	    $("#btnGuardarCancelar").click(cancelarGuardarAlarma);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    
 	    $(document).bind("pause", () => 

@@ -24,3 +24,9 @@
 {
 	overflow-x: auto;
 }
+
+#divPanelGuardar
+{
+	height: auto;
+	width: auto;
+}
