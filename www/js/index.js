@@ -3,17 +3,16 @@ const app = new Vue(
     el: "#divVuePos",
     data:
     {
+        watchID: null,
+        db: null,
+        
         latitud: null,
         longitud: null,
         error: "",
         ids: [],
-        watchID: null,
-        db: null,
-        watch_iniciado: false,
-        mostrar_alarmas: false,
         
+        watch_iniciado: false,
         accion_watch: "Iniciar",
-        accion_alarmas: "Mostrar",
         
         alarmas: []
     },
@@ -82,23 +81,8 @@ function guardarAlarma()
 }
 
 // Alarmas guardadas ===========================================================
-function mostrarAlarmas()
-{
-    if (app.mostrar_alarmas = !app.mostrar_alarmas)
-    {
-        consultarAlarmas();
-        app.accion_alarmas = "Ocultar";
-    }
-    else
-    {
-        app.accion_alarmas = "Mostrar";
-    }
-}
-
 function consultarAlarmas()
 {
-    $("#tbodyAlarmas").empty();
-    
     db.transaction(
         (tx) => 
         {
@@ -365,8 +349,8 @@ $(document).ready(() =>
 	    
 	    // Botones:
 	    $("#btnWatch").click(iniciarWatch);
-	    $("#btnMostrar").click(mostrarAlarmas);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
+	    $("#aPanelTabla").click(consultarAlarmas);
 	    
 	    $(document).bind("pause", () => 
 	    { 

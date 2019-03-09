@@ -2,15 +2,6 @@
 <html>
 
 <head>
-    <!--
-    Customize this policy to fit your own app's needs. For more guidance, see:
-        https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
-    Some notes:
-        * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
-        * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
-        * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
-            * Enable inline JS: add 'unsafe-inline' to default-src
-    -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-tap-highlight" content="no">
@@ -21,11 +12,12 @@
     <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
     <!-- <link rel="stylesheet" href="css/index.css"> -->
     <link rel="stylesheet" href="css/estilos.css">
+    
     <title>Alarma GPS</title>
 </head>
 
 <body>
-    <div id="divVuePos" class="app">
+    <div id="divVuePos" class="app" data-theme="b">
         <div data-role="header" data-theme="b">
             <h1>Alarma GPS</h1>
         </div>
@@ -41,39 +33,15 @@
             data-theme="b">
             
             <button id="btnWatch" data-icon="arrow-r">{{ accion_watch }}</button>
-            <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar</a>
-            <button id="btnMostrar" data-icon="info">{{ accion_alarmas }} Alarmas</button>
-        </div>
-        
-        <div id="divAlarmas" v-if="mostrar_alarmas">
-            <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table" data-role="table">
-                <caption>Alarmas guardadas (presionar número para borrar)</caption>
-                <thead>
-                    <tr>
-                        <th>N°</th>
-                        <th>Posición</th>
-                        <th>Descripción</th>
-                        <th>Distancia (m)</th>
-                        <th>Activo</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyAlarmas">
-                    <tr v-for="alarma in alarmas" :key="alarma.id" >
-                        <td class="alarmaId">{{ alarma.id }}</td>
-                        <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
-                        <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
-                        <td><input type="number" class="alarmaDist" :value="alarma.distancia"/></td>
-                        <td><input type="checkbox" class="alternarAlarma" v-model="alarma.activo"/></td>
-                    </tr>
-                </tbody>
-            </table>
+            <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar alarma</a>
+            <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear">Mostrar alarmas</a>
         </div>
         
         <div id="divPanelGuardar" class="ui-panel ui-panel-position-left ui-panel-display-overlay ui-panel-animate ui-body-b" 
             data-role="panel">
             
             <div data-role="header" data-theme="b">
-                <h1>Guardar ubicación</h1>
+                <h1>Guardar<br>ubicación</h1>
             </div>
             
             <div data-role="controlgroup" class="ui-body-b">
@@ -95,6 +63,49 @@
                 </a>
                 <button id="btnGuardarGuardar">Guardar</button>
             </div>
+        </div>
+    
+        <div id="divPanelTabla" class="ui-panel ui-panel-position-left ui-panel-display-overlay ui-panel-animate ui-body-b" 
+            data-role="panel"
+            data-swipe-close="false">
+            
+            <div data-role="header" data-theme="b">
+                <h1>Alarmas<br>guardadas</h1>
+            </div>
+            
+            <div data-role="controlgroup" data-theme="b">
+                <a href="#divVuePos" 
+                    data-rel="close" 
+                    data-role="button">
+                    
+                    Cerrar
+                </a>
+            </div>
+            
+            <div style="overflow-x: auto">
+            <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
+                <caption>Presionar número para borrar</caption>
+                <thead class="ui-body-b">
+                    <tr>
+                        <th>N°</th>
+                        <th>Posición</th>
+                        <th>Descripción</th>
+                        <th>Distancia (m)</th>
+                        <th>Activo</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyAlarmas" class="ui-body-b">
+                    <tr v-for="alarma in alarmas" :key="alarma.id" >
+                        <td class="alarmaId">{{ alarma.id }}</td>
+                        <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
+                        <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
+                        <td><input type="number" class="alarmaDist" :value="alarma.distancia"/></td>
+                        <td><input type="checkbox" class="alternarAlarma" v-model="alarma.activo"/></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            
         </div>
     
         <!-- <button id="btnPrueba" style="width: 100%">Prueba</button> -->    
