@@ -17,34 +17,36 @@
 </head>
 
 <body>
-    <div id="divVuePos" class="app" data-theme="b">
-        <div data-role="header" data-theme="b">
+    <div id="divVuePos" class="app" 
+        data-role="page" 
+        data-theme="b">
+        
+        <div data-role="header">
             <h1>Alarma GPS</h1>
         </div>
         
-        <div data-role="content" data-theme="b">
+        <div id="divContent" data-role="content">
             <b>Posicion:</b> {{ latitud }}, {{ longitud }}
             <b v-if="error">Error:</b> {{ error }}
-        </div>
         
-        <div id="divBotones" 
-            class="ui-overlay-shadow ui-corner-all" 
-            data-role="controlgroup" 
-            data-theme="b">
-            
-            <button id="btnWatch" data-icon="arrow-r">{{ accion_watch }}</button>
-            <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar alarma</a>
-            <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear">Mostrar alarmas</a>
-        </div>
+            <div id="divBotones" class="ui-overlay-shadow ui-corner-all" 
+                data-role="controlgroup">
+                
+                <button id="btnWatch" data-icon="arrow-r">{{ accion_watch }}</button>
+                <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar alarma</a>
+                <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear">Mostrar alarmas</a>
+            </div>
+        </div> <!-- data-role="content" -->
         
-        <div id="divPanelGuardar" class="ui-panel ui-panel-position-left ui-panel-display-overlay ui-panel-animate ui-body-b" 
-            data-role="panel">
+        <div id="divPanelGuardar" class="ui-panel ui-panel-position-left ui-panel-display-overlay ui-panel-animate" 
+            data-role="panel"
+            data-display="overlay">
             
-            <div data-role="header" data-theme="b">
+            <div data-role="header">
                 <h1>Guardar<br>ubicación</h1>
             </div>
             
-            <div data-role="controlgroup" class="ui-body-b">
+            <div data-role="controlgroup">
                 <input id="inGuardarPos" placeholder="Latitud, Longitud"/>
                 <input id="inGuardarDesc" placeholder="Descripción"/>
                 <input id="inGuardarDist" type="number" placeholder="Distancia (metros)"/>
@@ -54,7 +56,7 @@
                 </label>
             </div>
             
-            <div data-role="controlgroup" data-theme="b">
+            <div data-role="controlgroup">
                 <a href="#divVuePos" 
                     data-rel="close" 
                     data-role="button">
@@ -63,50 +65,50 @@
                 </a>
                 <button id="btnGuardarGuardar">Guardar</button>
             </div>
-        </div>
+        </div> <!-- "divPanelGuardar -->
     
-        <div id="divPanelTabla" class="ui-panel ui-panel-position-left ui-panel-display-overlay ui-panel-animate ui-body-b" 
+        <div id="divPanelTabla" class="ui-panel ui-panel-display-overlay ui-panel-animate" 
             data-role="panel"
+            data-display="overlay"
             data-swipe-close="false">
             
-            <div data-role="header" data-theme="b">
+            <div data-role="header">
                 <h1>Alarmas<br>guardadas</h1>
             </div>
             
-            <div data-role="controlgroup" data-theme="b">
-                <a href="#divVuePos" 
-                    data-rel="close" 
-                    data-role="button">
-                    
-                    Cerrar
-                </a>
-            </div>
+            <div data-role="content">
+                <div data-role="controlgroup">
+                    <a href="#divVuePos" data-rel="close" data-role="button">
+                        Cerrar
+                    </a>
+                </div>
+                
+                <div style="overflow-x: auto">
+                <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
+                    <caption>Presionar número para borrar</caption>
+                    <thead class="ui-body-b">
+                        <tr>
+                            <th>N°</th>
+                            <th>Posición</th>
+                            <th>Descripción</th>
+                            <th>Distancia (metros)</th>
+                            <th>Activo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyAlarmas" class="ui-body-b">
+                        <tr v-for="alarma in alarmas" :key="alarma.id" >
+                            <td class="alarmaId">{{ alarma.id }}</td>
+                            <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
+                            <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
+                            <td><input type="number" class="alarmaDist" :value="alarma.distancia"/></td>
+                            <td><input type="checkbox" class="alternarAlarma" v-model="alarma.activo"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div> <!-- style="overflow-x: auto" -->
+            </div> <!-- data-role="content" -->
             
-            <div style="overflow-x: auto">
-            <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
-                <caption>Presionar número para borrar</caption>
-                <thead class="ui-body-b">
-                    <tr>
-                        <th>N°</th>
-                        <th>Posición</th>
-                        <th>Descripción</th>
-                        <th>Distancia (m)</th>
-                        <th>Activo</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyAlarmas" class="ui-body-b">
-                    <tr v-for="alarma in alarmas" :key="alarma.id" >
-                        <td class="alarmaId">{{ alarma.id }}</td>
-                        <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
-                        <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
-                        <td><input type="number" class="alarmaDist" :value="alarma.distancia"/></td>
-                        <td><input type="checkbox" class="alternarAlarma" v-model="alarma.activo"/></td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-            
-        </div>
+        </div> <!-- #divPanelTabla -->
     
         <!-- <button id="btnPrueba" style="width: 100%">Prueba</button> -->    
     </div>

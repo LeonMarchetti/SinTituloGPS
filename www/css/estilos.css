@@ -1,26 +1,45 @@
+:root
+{
+	--ancho: 20em;
+}
+
 *
 {
 	font-family: Open Sans;
 }
 
-.app > *
-{
-	width: 100%;
-}
-
 #tableAlarmas input
 {
-	width: 100%;
+    width: 100%;
 }
 
-#divBotones
+.ui-panel 
 {
-	width:        auto;
-	margin-left:  15px;
-	margin-right: 15px;
+    width: var(--ancho);
 }
 
-#divPanelGuardar
+.ui-panel-position-left 
 {
-	width: auto;
+    left: -var(--ancho);
+}
+
+/* positioning: content wrap, fixed toolbars and dismiss */
+/* panel left open */
+.ui-panel-content-fixed-toolbar-position-left.ui-panel-content-fixed-toolbar-open,
+.ui-panel-content-wrap-position-left.ui-panel-content-wrap-open,
+.ui-panel-dismiss-position-left.ui-panel-dismiss-open 
+{
+    left: var(--ancho);
+    right: -var(--ancho);
+}
+
+/* animated: panel left open (for reveal and push) */
+.ui-panel-animate.ui-panel-content-fixed-toolbar-position-left.ui-panel-content-fixed-toolbar-open.ui-panel-content-fixed-toolbar-display-reveal,
+.ui-panel-animate.ui-panel-content-fixed-toolbar-position-left.ui-panel-content-fixed-toolbar-open.ui-panel-content-fixed-toolbar-display-push,
+.ui-panel-animate.ui-panel-content-wrap-position-left.ui-panel-content-wrap-open.ui-panel-content-wrap-display-reveal,
+.ui-panel-animate.ui-panel-content-wrap-position-left.ui-panel-content-wrap-open.ui-panel-content-wrap-display-push 
+{
+    -webkit-transform: translate3d(var(--ancho),0,0);
+    -moz-transform: translate3d(var(--ancho),0,0);
+    transform: translate3d(var(--ancho),0,0);
 }
