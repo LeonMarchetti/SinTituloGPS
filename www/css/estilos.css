@@ -1,8 +1,3 @@
-:root
-{
-    --ancho: 50em;
-}
-
 *
 {
     font-family: Open Sans;
@@ -13,16 +8,3 @@
     width: 100%;
 }
 
-.ui-panel 
-{
-    width: var(--ancho);
-}
-
-/* positioning: content wrap, fixed toolbars and dismiss panel left open */
-.ui-panel-content-fixed-toolbar-position-left.ui-panel-content-fixed-toolbar-open,
-.ui-panel-content-wrap-position-left.ui-panel-content-wrap-open,
-.ui-panel-dismiss-position-left.ui-panel-dismiss-open 
-{
-    left: var(--ancho);
-    right: -var(--ancho);
-}

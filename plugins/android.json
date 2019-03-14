@@ -7,31 +7,37 @@
     "files": {}
   },
   "installed_plugins": {
-    "cordova-plugin-whitelist": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
-    },
-    "cordova-plugin-geolocation": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
-    },
     "cordova-plugin-console": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
-    },
-    "cordova-sqlite-storage": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
+      "PACKAGE_NAME": "io.alarma.gps"
     },
     "cordova-plugin-dialogs": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
+      "PACKAGE_NAME": "io.alarma.gps"
+    },
+    "cordova-plugin-geolocation": {
+      "PACKAGE_NAME": "io.alarma.gps"
     },
     "cordova-plugin-local-notification": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
+      "PACKAGE_NAME": "io.alarma.gps"
+    },
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "io.alarma.gps"
+    },
+    "cordova-sqlite-storage": {
+      "PACKAGE_NAME": "io.alarma.gps"
     }
   },
   "dependent_plugins": {
-    "cordova-plugin-device": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
-    },
     "cordova-plugin-badge": {
-      "PACKAGE_NAME": "io.sintitulo.gps"
+      "PACKAGE_NAME": "io.alarma.gps"
+    },
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "io.alarma.gps"
+    },
+    "cordova-support-google-services": {
+      "PACKAGE_NAME": "io.alarma.gps"
+    },
+    "phonegap-plugin-multidex": {
+      "PACKAGE_NAME": "io.alarma.gps"
     }
   }
 }

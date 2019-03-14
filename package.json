@@ -11,11 +11,12 @@
       "cordova-plugin-console": {},
       "cordova-sqlite-storage": {},
       "cordova-plugin-dialogs": {},
-      "cordova-plugin-local-notification": {}
+      "cordova-plugin-local-notification": {},
+      "cordova-plugin-whitelist": {}
     }
   },
   "dependencies": {
-    "cordova-android": "7.1.4",
+    "cordova-android": "^7.1.4",
     "cordova-plugin-badge": "^0.8.8",
     "cordova-plugin-console": "^1.1.0",
     "cordova-plugin-device": "^2.0.2",
@@ -24,6 +25,7 @@
     "cordova-plugin-local-notification": "^0.9.0-beta.2",
     "cordova-sqlite-storage": "^3.0.0",
     "cordova-support-google-services": "^1.1.0",
-    "phonegap-plugin-multidex": "^1.0.0"
+    "phonegap-plugin-multidex": "^1.0.0",
+    "cordova-plugin-whitelist": "1"
   }
 }
