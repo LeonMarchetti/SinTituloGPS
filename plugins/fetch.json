@@ -10,7 +10,7 @@
   "cordova-plugin-geolocation": {
     "source": {
       "type": "registry",
-      "id": "cordova-plugin-geolocation@4.0.1"
+      "id": "cordova-plugin-geolocation@^4.0.1"
     },
     "is_top_level": true,
     "variables": {}
@@ -18,7 +18,7 @@
   "cordova-plugin-console": {
     "source": {
       "type": "registry",
-      "id": "cordova-plugin-console"
+      "id": "cordova-plugin-console@^1.1.0"
     },
     "is_top_level": true,
     "variables": {}
@@ -26,39 +26,15 @@
   "cordova-sqlite-storage": {
     "source": {
       "type": "registry",
-      "id": "cordova-sqlite-storage"
+      "id": "cordova-plugin-dialogs@^2.0.1"
     },
     "is_top_level": true,
-    "variables": {}
-  },
-  "cordova-plugin-dialogs": {
-    "source": {
-      "type": "registry",
-      "id": "cordova-plugin-dialogs"
-    },
-    "is_top_level": true,
-    "variables": {}
-  },
-  "cordova-support-google-services": {
-    "source": {
-      "type": "registry",
-      "id": "cordova-support-google-services@~1.1.0"
-    },
-    "is_top_level": false,
-    "variables": {}
-  },
-  "phonegap-plugin-multidex": {
-    "source": {
-      "type": "registry",
-      "id": "phonegap-plugin-multidex@~1.0.0"
-    },
-    "is_top_level": false,
     "variables": {}
   },
   "cordova-plugin-local-notification": {
     "source": {
       "type": "registry",
-      "id": "cordova-plugin-local-notification"
+      "id": "cordova-plugin-local-notification@^0.9.0-beta.2"
     },
     "is_top_level": true,
     "variables": {}
@@ -77,6 +53,14 @@
       "id": "cordova-plugin-badge@>=0.8.5"
     },
     "is_top_level": false,
+    "variables": {}
+  },
+  "cordova-plugin-dialogs": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-plugin-dialogs@^2.0.1"
+    },
+    "is_top_level": true,
     "variables": {}
   }
 }
