@@ -1,5 +1,6 @@
 // Mapbox:
 var mapa = null;
+var marcador_actual = null;
 
 const app = new Vue(
 {
@@ -340,6 +341,17 @@ function iniciarWatch()
                 enableHighAccuracy: true,
                 maximumAge:         2000
             }); 
+            
+        // Mapbox - Rastrear la ubicación del dispositivo
+        mapa.locate(
+        {
+            watch:              true,
+            setView:            true,
+            maximumAge:         2000,
+            enableHighAccuracy: true,
+            maxZoom:            15
+        });
+        
         console.log(`watchPosition iniciado para id=${app.watchID}`);
     }
     else
@@ -349,6 +361,9 @@ function iniciarWatch()
         console.log(`watchPosition terminado para id=${app.watchID}`);
         app.watchID = null;
         app.ids = [];
+        
+        // Mapbox - Dejar de rastrear la ubicación del dispositivo
+        mapa.stopLocate();
     }
 }
 
@@ -367,6 +382,17 @@ $(document).ready(() =>
     mapa = L.mapbox.map('divMapa')
         .setView(app.pos_inicial, 15)
         .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
+        
+    marcador_actual = L.marker([0, 0])
+            .addTo(mapa)
+            .bindPopup("Posición actual");
+        
+    mapa.on("locationfound", (e) => 
+    {
+        marcador_actual
+            .setLatLng(e.latlng)
+            .update();
+    });
     
     // Cordova
 	$(document).bind("deviceready", () =>
