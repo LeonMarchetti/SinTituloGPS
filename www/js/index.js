@@ -39,10 +39,7 @@ const app = new Vue(
                 {
                     tx.executeSql(sql_crear_tabla); 
                 },
-                (error) =>
-                {
-                    console.log(error.message); 
-                });
+                manejarError);
         }
     }
 });
@@ -76,7 +73,7 @@ function guardarAlarma()
         manejarError, 
         () => 
         {
-            console.log("Insercion OK");
+            console.log(`Insercion: id=${id}, desc="${descripcion}", activo=${activo}`);
             consultarAlarmas();
         });
     
@@ -146,6 +143,9 @@ function borrarAlarma(e)
                 () =>
                 {
                     $(e.target).parent().remove();
+                    console.log(`Alarma borrada: id=${id}`);
+                    
+                    consultarAlarmas();
                 });
         }
     }, "SinTituloGPS", ["Borrar", "Cancelar"]);
@@ -283,7 +283,6 @@ function onWatchPosition(pos)
                         */
                         if (!app.ids.includes(alarma.id)) 
                         {
-                            console.log("Alarma encontrada: id=" + alarma.id);
                             notificar("Alarma GPS", alarma.descripcion);
                             app.ids.push(alarma.id);
                         }
@@ -367,9 +366,17 @@ $(document).ready(() =>
         .setView(app.pos_inicial, 15)
         .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
         
+    $("#divMapa").on("click", ".spanPopup", (e) => 
+    {
+        $("#divPanelGuardar").panel("open");
+        var pos_actual = marcador_actual.getLatLng();
+        $("#inGuardarPos").val(pos_actual.lat + ", " + pos_actual.lng);
+        $("#inGuardarDesc").val("Posición elegida");
+    });
+        
     marcador_actual = L.marker([0, 0])
         .addTo(mapa)
-        .bindPopup("Posición actual");
+        .bindPopup("<span class='spanPopup'>Guardar</span>");
             
     mapa.on("locationfound", (e) => 
     {
@@ -380,7 +387,6 @@ $(document).ready(() =>
     
     mapa.on("click", (me) => 
     {
-        console.log(`Click: ${me.latlng.toString()}`);
         marcador_actual
             .setLatLng(me.latlng)
             .update();
