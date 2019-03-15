@@ -1,6 +1,6 @@
 *
 {
-    font-family: Open Sans;
+    font-family: Noto Sans;
 }
 
 #tableAlarmas input
@@ -8,3 +8,16 @@
     width: 100%;
 }
 
+#divContMapa
+{
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+#divMapa
+{
+    position: relative;
+    height: inherit;
+    width: inherit;
+}

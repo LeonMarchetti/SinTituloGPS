@@ -1,3 +1,6 @@
+// Mapbox:
+var mapa = null;
+
 const app = new Vue(
 {
     el: "#divVuePos",
@@ -14,13 +17,16 @@ const app = new Vue(
         watch_iniciado: false,
         accion_watch: "Iniciar",
         
-        alarmas: []
+        alarmas: [],
+        
+        pos_inicial: [-34.578973, -59.086396],
+        marcadores: []
     },
     methods:
     {
         init: () =>
         {
-            // Iniciar base de datos:
+            // SQLite storage
             db = window.sqlitePlugin.openDatabase(
             {
                 name:     "alarmas.db",
@@ -96,10 +102,23 @@ function consultarAlarmas()
 
 function llenarTablaAlarmas(tx, rs)
 {
+    // Borrar marcadores
+    while (app.marcadores.length)
+    {
+        mapa.removeLayer(app.marcadores.pop());
+    }
+    
     app.alarmas = [];
+    
     for (var i = 0; i < rs.rows.length; i++)
     {
-        app.alarmas.push(rs.rows.item(i));
+        var alarma = rs.rows.item(i);
+        app.alarmas.push(alarma);
+        
+        var marcador = L.marker([alarma.latitud, alarma.longitud])
+            .addTo(mapa)
+            .bindPopup(alarma.descripcion);
+        app.marcadores.push(marcador);
     }
     
     $("#tbodyAlarmas .alarmaId").click(borrarAlarma);
@@ -148,6 +167,7 @@ function cambiarEstado(e)
             console.log(`Actualizado: id=${id}, activo=${activo}`);
         });
 }
+
 
 function cambiarPosicion(e)
 {
@@ -240,6 +260,8 @@ function onWatchPosition(pos)
     
     console.log(`(${app.latitud}, ${app.longitud})`);
     
+//    mapa.panTo([app.latitud, app.longitud]);
+    
     db.transaction((tx) =>
     {
         tx.executeSql(
@@ -261,7 +283,6 @@ function onWatchPosition(pos)
                         * la alarma y entonces tengo que lanzar la 
                         * notificación.
                         */
-//                        console.log(`Alarma cerca: ${alarma.id}`);
                         if (!app.ids.includes(alarma.id)) 
                         {
                             console.log("Alarma encontrada: id=" + alarma.id);
@@ -317,7 +338,7 @@ function iniciarWatch()
             {
                 timeout:            30000,
                 enableHighAccuracy: true,
-                maximumAge:         1000
+                maximumAge:         2000
             }); 
         console.log(`watchPosition iniciado para id=${app.watchID}`);
     }
@@ -333,7 +354,7 @@ function iniciarWatch()
 
 $(document).ready(() =>
 {	
-    console.log("=".repeat(72));
+    console.log("=".repeat(55));
     console.log("El documento esta listo.");
     
     $("#aPanelGuardar").click(() => 
@@ -341,6 +362,13 @@ $(document).ready(() =>
         $("#inGuardarPos").val(app.latitud + ", " + app.longitud);
     });
     
+    // Mapbox
+    L.mapbox.accessToken = 'pk.eyJ1IjoiZGVyaXBwZXIiLCJhIjoiY2p0N25ra29wMHFnZjRhbzhqZGxqMGh3ZyJ9.YJAFA62bEHoa6eL4wy69mA';
+    mapa = L.mapbox.map('divMapa')
+        .setView(app.pos_inicial, 15)
+        .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
+    
+    // Cordova
 	$(document).bind("deviceready", () =>
 	{
 	    console.log("Cordova esta listo.");
