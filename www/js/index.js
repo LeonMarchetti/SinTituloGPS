@@ -261,8 +261,6 @@ function onWatchPosition(pos)
     
     console.log(`(${app.latitud}, ${app.longitud})`);
     
-//    mapa.panTo([app.latitud, app.longitud]);
-    
     db.transaction((tx) =>
     {
         tx.executeSql(
@@ -312,20 +310,7 @@ function onWatchPosition(pos)
 
 function onWatchPositionError(error)
 {
-    var codigo = "Desconocido";
-    switch (error.code)
-    {
-        case PositionError.PERMISSION_DENIED:
-            codigo = "Permiso denegado";
-            break;
-        case PositionError.POSITION_UNAVAILABLE:
-            codigo = "Posición no disponible";
-            break;
-        case PositionError.TIMEOUT:
-            codigo = "Tiempo agotado";
-            break;
-    }
-    app.error = `${codigo} - ${error.message}`;
+    app.error = error.message;
 }
 
 function iniciarWatch()
@@ -339,7 +324,7 @@ function iniciarWatch()
             {
                 timeout:            30000,
                 enableHighAccuracy: true,
-                maximumAge:         2000
+                maximumAge:         2000,
             }); 
             
         // Mapbox - Rastrear la ubicación del dispositivo
@@ -349,7 +334,7 @@ function iniciarWatch()
             setView:            true,
             maximumAge:         2000,
             enableHighAccuracy: true,
-            maxZoom:            15
+            maxZoom:            14,
         });
         
         console.log(`watchPosition iniciado para id=${app.watchID}`);

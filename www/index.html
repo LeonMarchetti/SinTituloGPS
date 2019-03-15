@@ -33,9 +33,18 @@
         </div>
         
         <div data-role="content">
-            <b>Posicion:</b> {{ latitud }}, {{ longitud }}
-            <b v-if="error">Error:</b> {{ error }}
-            
+        
+            <table>
+                <tr>
+                    <td>Posicion</td>
+                    <td><input readonly :value="(latitud || '') + ', ' + (longitud || '')"/></td>
+                </tr>
+                <tr v-if="error">
+                    <td>Error</td>
+                    <td><input readonly :value="error"/></td>
+                </tr>
+            </table>
+        
             <div id="divContMapa">
                 <div id="divMapa"></div>
             </div>
