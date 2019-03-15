@@ -115,10 +115,10 @@ function llenarTablaAlarmas(tx, rs)
     {
         var alarma = rs.rows.item(i);
         app.alarmas.push(alarma);
-        
+            
         var marcador = L.marker([alarma.latitud, alarma.longitud])
             .addTo(mapa)
-            .bindPopup(alarma.descripcion);
+            .bindPopup(alarma.descripcion);    
         app.marcadores.push(marcador);
     }
     
@@ -168,7 +168,6 @@ function cambiarEstado(e)
             console.log(`Actualizado: id=${id}, activo=${activo}`);
         });
 }
-
 
 function cambiarPosicion(e)
 {
@@ -369,13 +368,21 @@ $(document).ready(() =>
         .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
         
     marcador_actual = L.marker([0, 0])
-            .addTo(mapa)
-            .bindPopup("Posición actual");
-        
+        .addTo(mapa)
+        .bindPopup("Posición actual");
+            
     mapa.on("locationfound", (e) => 
     {
         marcador_actual
             .setLatLng(e.latlng)
+            .update();
+    });
+    
+    mapa.on("click", (me) => 
+    {
+        console.log(`Click: ${me.latlng.toString()}`);
+        marcador_actual
+            .setLatLng(me.latlng)
             .update();
     });
     
