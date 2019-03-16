@@ -1,6 +1,10 @@
 // Mapbox:
-var mapa = null;
+var mapa            = null;
 var marcador_actual = null;
+
+var icono_activo    = null;
+var icono_actual    = null;
+var icono_inactivo  = null;
 
 const app = new Vue(
 {
@@ -112,9 +116,12 @@ function llenarTablaAlarmas(tx, rs)
     {
         var alarma = rs.rows.item(i);
         app.alarmas.push(alarma);
+        
+        var icono = (alarma.activo)? icono_activo : icono_inactivo;
             
         var marcador = L.marker([alarma.latitud, alarma.longitud])
             .addTo(mapa)
+            .setIcon(icono)
             .bindPopup(alarma.descripcion);    
         app.marcadores.push(marcador);
     }
@@ -360,13 +367,18 @@ $(document).ready(() =>
         $("#inGuardarPos").val(app.latitud + ", " + app.longitud);
     });
     
-    // Mapbox
+    // Mapbox ==============================================
     L.mapbox.accessToken = 'pk.eyJ1IjoiZGVyaXBwZXIiLCJhIjoiY2p0N25ra29wMHFnZjRhbzhqZGxqMGh3ZyJ9.YJAFA62bEHoa6eL4wy69mA';
     mapa = L.mapbox.map('divMapa')
         .setView(app.pos_inicial, 15)
         .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
         
-    $("#divMapa").on("click", ".spanPopup", (e) => 
+    // Inicializar íconos
+    icono_actual = L.icon({ iconUrl: "img/star-15.svg" });
+    icono_activo = L.icon({ iconUrl: "img/marker-15.svg" });
+    icono_inactivo = L.icon({ iconUrl: "img/marker-stroked-15.svg" });
+        
+    $("#divMapa").on("click", ".spanPopup", () => 
     {
         $("#divPanelGuardar").panel("open");
         var pos_actual = marcador_actual.getLatLng();
@@ -376,6 +388,7 @@ $(document).ready(() =>
         
     marcador_actual = L.marker([0, 0])
         .addTo(mapa)
+        .setIcon(icono_actual)
         .bindPopup("<span class='spanPopup'>Guardar</span>");
             
     mapa.on("locationfound", (e) => 

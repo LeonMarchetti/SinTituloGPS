@@ -6,6 +6,7 @@ Aplicación que avisa cuando nos acercamos a un determinado lugar.
 * Usa la aplicación de mapas Mapbox. El mapa las posiciones de las alarmas guardadas.
 * Cuando se está rastreando la ubicación, el mapa se va a mover a la ubicación actual.
 * Al elegir un lugar en el mapa aparece un marcador, apretando en este marcando salta un mensaje diciendo "Guardar". Apretando sobre éste lleva al panel para guardarlo como una alarma, con la ubicación ya colocada.
+* Ahora usa íconos personalizados (hechos por [Maki](https://labs.mapbox.com/maki-icons/)). Usa un ícono para marcar la posición actual y el lugar seleccionado por el usuario, otro para los lugares guardados como alarmas activas y otro para las inactivas.
 
 ## Falta:
-* Cambiar el color de los marcadores de las alarmas que estén inactivas y el del lugar marcado por el usuario.
+* Hacer un apartado de ayuda para usar la aplicación.
