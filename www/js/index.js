@@ -52,7 +52,6 @@ const app = new Vue(
             if (pos_nueva.length != 2 || isNaN(pos_nueva[0]) || isNaN(pos_nueva[1]))
             {
                 navigator.notification.alert("No se escribió bien la posición", null);
-                
             }
             else
             {
@@ -102,7 +101,6 @@ const app = new Vue(
         cambiarEstado: (alarma) =>
         {
             var activo = (alarma.activo) ? 1 : 0;
-            
             db.transaction(
                 (tx) =>
                 {
@@ -128,8 +126,6 @@ const app = new Vue(
                         manejarError,
                         function()
                         {
-                            // $(e.target).parent().remove();
-                         
                             for (var i = 0; i < app.alarmas.length; i++)
                             {
                                 if (alarma.id == app.alarmas[i].id)
@@ -138,9 +134,7 @@ const app = new Vue(
                                     break;
                                 }
                             }
-                            
                             console.log(`Alarma borrada: id=${alarma.id}`);
-                            
                             consultarAlarmas();
                         });
                 }
@@ -175,7 +169,7 @@ function guardarAlarma()
         {
             tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion, distancia, activo]);
         }, 
-        manejarError, 
+        manejarError,
         () => 
         {
             console.log(`Insercion: desc="${descripcion}", activo=${activo}`);
@@ -226,6 +220,9 @@ function llenarTablaAlarmas(tx, rs)
             .bindPopup(alarma.descripcion);    
         marcadores.push(marcador);
     }
+    
+    // $("#tableAlarmas input").textinput();
+    // $("#tableAlarmas button").button();
 }
 
 // Notificaciones ==============================================================
@@ -368,7 +365,12 @@ $(document).ready(() =>
         $("#inGuardarPos").val(app.latitud + ", " + app.longitud);
     });
     
-    // Mapbox ==============================================
+    $("#tableAlarmas").bind("DOMNodeInserted", () => 
+    { 
+        $("#tableAlarmas").trigger("create");
+    });
+    
+    // Mapbox =================================================================
     L.mapbox.accessToken = 'pk.eyJ1IjoiZGVyaXBwZXIiLCJhIjoiY2p0N25ra29wMHFnZjRhbzhqZGxqMGh3ZyJ9.YJAFA62bEHoa6eL4wy69mA';
     mapa = L.mapbox.map('divMapa')
         .setView(app.pos_inicial, 15)
@@ -406,7 +408,7 @@ $(document).ready(() =>
             .update();
     });
     
-    // Cordova
+    // Cordova ================================================================
 	$(document).bind("deviceready", () =>
 	{
 	    console.log("Cordova esta listo.");

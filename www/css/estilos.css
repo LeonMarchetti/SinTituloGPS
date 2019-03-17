@@ -5,9 +5,10 @@
 
 #tableAlarmas input
 {
-    width: 100%;
+    width: auto;
 }
 
+/* Mapbox */
 #divContMapa
 {
     position: relative;

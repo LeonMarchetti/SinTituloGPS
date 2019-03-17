@@ -71,7 +71,7 @@
                 <input id="inGuardarDesc" placeholder="Descripción"/>
                 <input id="inGuardarDist" type="number" placeholder="Distancia (metros)"/>
                 <label>
-                    <input id="inGuardarActivo" type="checkbox" placeholder="Descripción" name="activo" checked="checked">
+                    <input id="inGuardarActivo" type="checkbox" name="activo" checked="checked">
                     Activo
                 </label>
             </div>
@@ -105,25 +105,25 @@
                 
                 <div style="overflow-x: auto">
                 <table id="tableAlarmas" class="ui-shadow ui-corner-all ui-table">
-                    <caption>Presionar número para borrar</caption>
-                    <thead class="ui-body-b">
+                    <thead>
                         <tr>
                             <th>N°</th>
-                            <th>Posición</th>
                             <th>Descripción</th>
-                            <th>Distancia (metros)</th>
+                            <th>Posición</th>
+                            <th>Distancia (m)</th>
                             <th>Activo</th>
                             <th>Borrar</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyAlarmas">
-                        <tr v-for="alarma in alarmas" :key="alarma.id" >
-                            <td class="alarmaId">{{ alarma.id }}</td>
-                            <td><input :value="alarma.latitud + ', ' + alarma.longitud" @change="cambiarPosicion(alarma, $event)" /></td>
+                        <tr v-for="alarma in alarmas" :key="alarma.id">
+                            <!-- <td class="alarmaId">{{ alarma.id }}</td> -->
+                            <td><input type="button" :value="alarma.id" /></td></td>
                             <td><input v-model="alarma.descripcion" @change="cambiarDescripcion(alarma)" /></td>
+                            <td><input :value="alarma.latitud + ', ' + alarma.longitud" @change="cambiarPosicion(alarma, $event)" /></td>
                             <td><input type="number" v-model="alarma.distancia" @change="cambiarDistancia(alarma)" /></td>
-                            <td><input type="checkbox" v-model="alarma.activo" @change="cambiarEstado(alarma)" /></td>
-                            <td><button data-icon="delete" @click="borrarAlarma(alarma)">&nbsp;</button></td>
+                            <td><input type="checkbox" v-model="alarma.activo" @change="cambiarEstado(alarma)"/></td>
+                            <td><button data-icon="delete" data-iconpos="notext" @click="borrarAlarma(alarma)">Borrar</button></td>
                         </tr>
                     </tbody>
                 </table>
