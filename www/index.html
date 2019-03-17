@@ -113,15 +113,17 @@
                             <th>Descripción</th>
                             <th>Distancia (metros)</th>
                             <th>Activo</th>
+                            <th>Borrar</th>
                         </tr>
                     </thead>
-                    <tbody id="tbodyAlarmas" class="ui-body-b">
+                    <tbody id="tbodyAlarmas">
                         <tr v-for="alarma in alarmas" :key="alarma.id" >
                             <td class="alarmaId">{{ alarma.id }}</td>
-                            <td><input class="alarmaPos" :value="alarma.latitud + ', ' + alarma.longitud"/></td>
-                            <td><input class="alarmaDesc" :value="alarma.descripcion"/></td>
-                            <td><input type="number" class="alarmaDist" :value="alarma.distancia"/></td>
-                            <td><input type="checkbox" class="alternarAlarma" v-model="alarma.activo"/></td>
+                            <td><input :value="alarma.latitud + ', ' + alarma.longitud" @change="cambiarPosicion(alarma, $event)" /></td>
+                            <td><input v-model="alarma.descripcion" @change="cambiarDescripcion(alarma)" /></td>
+                            <td><input type="number" v-model="alarma.distancia" @change="cambiarDistancia(alarma)" /></td>
+                            <td><input type="checkbox" v-model="alarma.activo" @change="cambiarEstado(alarma)" /></td>
+                            <td><button data-icon="delete" @click="borrarAlarma(alarma)">&nbsp;</button></td>
                         </tr>
                     </tbody>
                 </table>
