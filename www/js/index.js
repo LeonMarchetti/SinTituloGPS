@@ -2,6 +2,7 @@
 var mapa            = null;
 var marcador_actual = null;
 var marcadores      = [];
+var circulos        = [];
 
 var icono_activo    = null;
 var icono_actual    = null;
@@ -203,6 +204,7 @@ function llenarTablaAlarmas(tx, rs)
     while (marcadores.length)
     {
         mapa.removeLayer(marcadores.pop());
+        circulos.pop();
     }
     
     app.alarmas = [];
@@ -217,8 +219,13 @@ function llenarTablaAlarmas(tx, rs)
         var marcador = L.marker([alarma.latitud, alarma.longitud])
             .addTo(mapa)
             .setIcon(icono)
-            .bindPopup(alarma.descripcion);    
+            .bindPopup(alarma.descripcion);
+            
+        var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
+            .addTo(mapa);
+            
         marcadores.push(marcador);
+        circulos.push(circulo);
     }
     
     // $("#tableAlarmas input").textinput();
