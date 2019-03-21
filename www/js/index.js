@@ -227,9 +227,6 @@ function llenarTablaAlarmas(tx, rs)
         marcadores.push(marcador);
         circulos.push(circulo);
     }
-    
-    // $("#tableAlarmas input").textinput();
-    // $("#tableAlarmas button").button();
 }
 
 // Notificaciones ==============================================================
@@ -378,7 +375,7 @@ $(document).ready(() =>
     });
     
     // Mapbox =================================================================
-    L.mapbox.accessToken = 'pk.eyJ1IjoiZGVyaXBwZXIiLCJhIjoiY2p0N25ra29wMHFnZjRhbzhqZGxqMGh3ZyJ9.YJAFA62bEHoa6eL4wy69mA';
+    L.mapbox.accessToken = MAPBOX_ACCESS_TOKEN;
     mapa = L.mapbox.map('divMapa')
         .setView(app.pos_inicial, 15)
         .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
