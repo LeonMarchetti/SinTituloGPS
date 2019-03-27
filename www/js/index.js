@@ -30,130 +30,98 @@ const app = new Vue(
     },
     methods:
     {
-        init: () =>
-        {
+        init: function() {
             // SQLite storage
-            db = window.sqlitePlugin.openDatabase(
+            this.db = window.sqlitePlugin.openDatabase(
             {
                 name:     "alarmas.db",
                 location: "default"
             });
             
-            db.transaction(
-                (tx) => 
-                {
+            this.db.transaction(
+                function(tx) {
                     tx.executeSql(sql_crear_tabla); 
                 },
-                manejarError);
+                function(error) { console.log(error.message); }
+            );
         },
-        // Cambiar posición de la alarma
-        cambiarPosicion: (alarma, evento) =>
-        {
+        
+        centrarEnAlarma: function(alarma) {
+            console.log(`centrarEnAlarma: (${alarma.latitud}, ${alarma.longitud})`);
+            mapa.panTo([alarma.latitud, alarma.longitud]);
+        },
+        cambiarPosicion: function(alarma, evento) {
             var pos_nueva = evento.target.value.split(", ");
-            if (pos_nueva.length != 2 || isNaN(pos_nueva[0]) || isNaN(pos_nueva[1]))
-            {
+            if (pos_nueva.length != 2 || isNaN(pos_nueva[0]) || isNaN(pos_nueva[1])) {
                 navigator.notification.alert("No se escribió bien la posición", null);
             }
-            else
-            {
+            else {
                 alarma.latitud  = pos_nueva[0];
                 alarma.longitud = pos_nueva[1];
-                db.transaction(
-                (tx) =>
-                {
-                    tx.executeSql(sql_upd_pos, [alarma.latitud, alarma.longitud, alarma.id]);
-                }, 
-                manejarError, 
-                () => 
-                {
-                    console.log(`Actualizado: id=${alarma.id}, pos=(${alarma.latitud}, ${alarma.longitud})`);
-                });  
+                this.db.transaction(
+                    function(tx) {
+                        tx.executeSql(sql_upd_pos, [alarma.latitud, alarma.longitud, alarma.id]);
+                    }, 
+                    function(error) { console.log(error.message); }, 
+                    function() {
+                        console.log(`Actualizado: id=${alarma.id}, pos=(${alarma.latitud}, ${alarma.longitud})`);
+                    });  
             }
         },
-        // Cambiar descripción de la alarma
-        cambiarDescripcion: (alarma) =>
-        {
-            db.transaction(
-                (tx) =>
-                {
+        cambiarDescripcion: function(alarma) {
+            this.db.transaction(
+                function(tx) {
                     tx.executeSql(sql_upd_pos_desc, [alarma.descripcion, alarma.id]);
                 }, 
-                manejarError, 
-                () => 
-                {
+                function(error) { console.log(error.message); }, 
+                function() {
                     console.log(`Actualizado: id=${alarma.id}, descripcion=${alarma.descripcion}`);
                 });
         },
-        // Cambiar distancia de la alarma
-        cambiarDistancia: (alarma) =>
-        {
-            db.transaction(
-                (tx) =>
-                {
+        cambiarDistancia: function(alarma) {
+            this.db.transaction(
+                function(tx) {
                     tx.executeSql(sql_upd_pos_dist, [alarma.distancia, alarma.id]);
                 }, 
-                manejarError, 
-                () => 
-                {
+                function(error) { console.log(error.message); }, 
+                function() {
                     console.log(`Actualizado: id=${alarma.id}, distancia=${alarma.distancia}`);
                 });
         },
-        // Cambiar estado de la alarma
-        cambiarEstado: (alarma) =>
-        {
+        cambiarEstado: function(alarma) {
             var activo = (alarma.activo) ? 1 : 0;
-            db.transaction(
-                (tx) =>
-                {
+            this.db.transaction(
+                function(tx) {
                     tx.executeSql(sql_upd_pos_act, [activo, alarma.id]);
                 },
-                manejarError, 
-                () =>
-                {
+                function(error) { console.log(error.message); }, 
+                function() {
                     console.log(`Actualizado: id=${alarma.id}, activo=${activo}`);
                 });
         },
-        borrarAlarma: (alarma) =>
-        {
-            navigator.notification.confirm("¿Desea borrar esta alarma?", function(i)
-            {
-                if (i == 1)
-                {
-                    db.transaction(
-                        (tx) => 
-                        {
+        borrarAlarma: function(alarma) {
+            navigator.notification.confirm("¿Desea borrar esta alarma?", function(i) {
+                if (i == 1) {
+                    this.db.transaction(
+                        function(tx) {
                             tx.executeSql("Delete From Posicion Where id=?", [alarma.id]);
                         },
-                        manejarError,
-                        function()
-                        {
-                            for (var i = 0; i < app.alarmas.length; i++)
-                            {
-                                if (alarma.id == app.alarmas[i].id)
-                                {
-                                    app.alarmas.splice(i, 1);
+                        function(error) { console.log(error.message); },
+                        function() {
+                            for (var i = 0; i < this.alarmas.length; i++) {
+                                if (alarma.id == this.alarmas[i].id) {
+                                    this.alarmas.splice(i, 1);
                                     break;
                                 }
                             }
                             console.log(`Alarma borrada: id=${alarma.id}`);
-                            consultarAlarmas();
+                            // consultarAlarmas();
                         });
                 }
             }, "SinTituloGPS", ["Borrar", "Cancelar"]);
         },
     }
 });
-
-// Errores: ====================================================================
-function manejarError(error) 
-{
-    console.log(error.message);
-}
-
-function manejarErrorTransaccion(tx, error)
-{
-    console.log(error.message);
-}
 
 // Guardar alarma ==============================================================
 function guardarAlarma()
@@ -165,12 +133,12 @@ function guardarAlarma()
     var distancia   = $("#inGuardarDist").val();
     var activo      = $("#inGuardarActivo").prop("checked") ? 1 : 0;
     
-    db.transaction(
+    app.db.transaction(
         (tx) => 
         {
             tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion, distancia, activo]);
         }, 
-        manejarError,
+        function(error) { console.log(error.message); },
         () => 
         {
             console.log(`Insercion: desc="${descripcion}", activo=${activo}`);
@@ -187,24 +155,30 @@ function guardarAlarma()
 // Alarmas guardadas ===========================================================
 function consultarAlarmas()
 {
-    db.transaction(
+    app.db.transaction(
         (tx) => 
         {
             tx.executeSql(
                 sql_sel_pos_all, [], 
                 llenarTablaAlarmas, 
-                manejarErrorTransaccion);
+                function(tx, error) {
+                    console.log(error.message);
+                    return true;
+                }
+            );
         },
-        manejarErrorTransaccion);
+        function(tx, error) {
+            console.log(error.message);
+            return true;
+        }
+    );
 }
 
-function llenarTablaAlarmas(tx, rs)
-{
-    // Borrar marcadores
-    while (marcadores.length)
-    {
+function llenarTablaAlarmas(tx, rs) {
+    // Borrar marcadores y círculos
+    while (marcadores.length) {
         mapa.removeLayer(marcadores.pop());
-        circulos.pop();
+        mapa.removeLayer(circulos.pop());
     }
     
     app.alarmas = [];
@@ -269,7 +243,7 @@ function onWatchPosition(pos)
     
     console.log(`(${app.latitud}, ${app.longitud})`);
     
-    db.transaction((tx) =>
+    app.db.transaction((tx) =>
     {
         tx.executeSql(
             sql_sel_pos_act, [],
@@ -311,8 +285,19 @@ function onWatchPosition(pos)
                     }
                 }
             },
-            manejarErrorTransaccion);
+            function(tx, error) {
+                console.log(error.message);
+                return true;
+            }
+        );
     });
+    
+    // Mapbox
+    // Mover marcador a nuestra ubicación actual:
+    marcador_actual.setLatLng([app.latitud, app.longitud]).update();
+        
+    // Poner nuestra ubicación actual como centro del mapa:
+    mapa.panTo([app.latitud, app.longitud]);
 }
 
 function onWatchPositionError(error)
@@ -320,10 +305,8 @@ function onWatchPositionError(error)
     app.error = error.message;
 }
 
-function iniciarWatch()
-{
-    if (app.watch_iniciado = !app.watch_iniciado)
-    {
+function iniciarWatch() {
+    if (app.watch_iniciado = !app.watch_iniciado) {
         app.accion_watch = "Detener";
         app.watchID = navigator.geolocation.watchPosition(
             onWatchPosition, 
@@ -332,22 +315,12 @@ function iniciarWatch()
                 timeout:            30000,
                 enableHighAccuracy: true,
                 maximumAge:         2000,
-            }); 
-            
-        // Mapbox - Rastrear la ubicación del dispositivo
-        mapa.locate(
-        {
-            watch:              true,
-            setView:            true,
-            maximumAge:         2000,
-            enableHighAccuracy: true,
-            maxZoom:            14,
-        });
+            }
+        );
         
         console.log(`watchPosition iniciado para id=${app.watchID}`);
     }
-    else
-    {
+    else {
         app.accion_watch = "Iniciar";
         navigator.geolocation.clearWatch(app.watchID);
         console.log(`watchPosition terminado para id=${app.watchID}`);
@@ -359,18 +332,15 @@ function iniciarWatch()
     }
 }
 
-$(document).ready(() =>
-{	
+$(document).ready(function() {	
     console.log("=".repeat(55));
     console.log("El documento esta listo.");
     
-    $("#aPanelGuardar").click(() => 
-    {
+    $("#aPanelGuardar").click(function() {
         $("#inGuardarPos").val(app.latitud + ", " + app.longitud);
     });
     
-    $("#tableAlarmas").bind("DOMNodeInserted", () => 
-    { 
+    $("#tableAlarmas").bind("DOMNodeInserted", function() { 
         $("#tableAlarmas").trigger("create");
     });
     
@@ -385,8 +355,7 @@ $(document).ready(() =>
     icono_activo = L.icon({ iconUrl: "img/marker-15.svg" });
     icono_inactivo = L.icon({ iconUrl: "img/marker-stroked-15.svg" });
         
-    $("#divMapa").on("click", ".spanPopup", () => 
-    {
+    $("#divMapa").on("click", ".spanPopup", function() {
         $("#divPanelGuardar").panel("open");
         var pos_actual = marcador_actual.getLatLng();
         $("#inGuardarPos").val(pos_actual.lat + ", " + pos_actual.lng);
@@ -398,23 +367,14 @@ $(document).ready(() =>
         .setIcon(icono_actual)
         .bindPopup("<span class='spanPopup'>Guardar</span>");
             
-    mapa.on("locationfound", (e) => 
-    {
-        marcador_actual
-            .setLatLng(e.latlng)
-            .update();
-    });
-    
-    mapa.on("click", (me) => 
-    {
+    mapa.on("click", function(me) {
         marcador_actual
             .setLatLng(me.latlng)
             .update();
     });
     
     // Cordova ================================================================
-	$(document).bind("deviceready", () =>
-	{
+	$(document).bind("deviceready", function() {
 	    console.log("Cordova esta listo.");
 	    
 	    app.init();
@@ -424,8 +384,7 @@ $(document).ready(() =>
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    $("#aPanelTabla").click(consultarAlarmas);
 	    
-	    $(document).bind("pause", () => 
-	    { 
+	    $(document).bind("pause", function() { 
 	        console.log("Aplicacion pausada"); 
         });
 	    
