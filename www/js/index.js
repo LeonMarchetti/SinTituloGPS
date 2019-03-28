@@ -109,6 +109,7 @@ const app = new Vue({
                         (error) => { console.log(error.message); },
                         () => {
                             this.alarmas.splice(indice, 1);
+                            console.log(`Alarma borrada: [${alarma.id}] "${alarma.descripcion}"`);
                         });
                 }
             }, "SinTituloGPS", ["Borrar", "Cancelar"]);
@@ -224,7 +225,7 @@ const app = new Vue({
                         (tx) => {
                             tx.executeSql(
                                 "Select last_insert_rowid() As id", [],
-                                function(tx, rs) {
+                                (tx, rs) => {
                                     alarma.id = rs.rows.item(0).id;
                                     console.log(`Insercion: id=${alarma.id} desc="${alarma.descripcion}", activo=${alarma.activo}`);
                                     this.alarmas.push(alarma);
@@ -263,18 +264,14 @@ const app = new Vue({
                 this.alarmas.push(rs.rows.item(i));
             }
         },
-    },
-    watch: {
-        // Observo los cambios en la lista de alarmas:
-        alarmas: function() {
-            console.log("Cambio en alarmas detectado");
-            
-            // Borro los marcadores y círculos:
+        // Mapbox
+        borrarMarcadores: function() {
             while (marcadores.length) {
                 mapa.removeLayer(marcadores.pop());
                 mapa.removeLayer(circulos.pop());
             }
-            
+        },
+        dibujarMarcadores: function() {
             for(var i = 0; i < this.alarmas.length; i++) {
                 var alarma = this.alarmas[i];
                 var icono = (alarma.activo)? icono_activo : icono_inactivo;
@@ -284,12 +281,22 @@ const app = new Vue({
                     .setIcon(icono)
                     .bindPopup(alarma.descripcion);
                     
+                // TODO: El circulo de una alarma recien guardada es muy chiquito.
                 var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
                     .addTo(mapa);
                     
                 marcadores.push(marcador);
                 circulos.push(circulo);
             }
+        },
+    },
+    watch: {
+        // Observo los cambios en la lista de alarmas:
+        alarmas: function() {
+            console.log("Cambio en alarmas detectado");
+            
+            this.borrarMarcadores();
+            this.dibujarMarcadores();
         },
     },
 });
