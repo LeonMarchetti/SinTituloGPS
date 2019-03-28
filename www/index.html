@@ -115,13 +115,14 @@
                         </tr>
                     </thead>
                     <tbody id="tbodyAlarmas">
-                        <tr v-for="alarma in alarmas" :key="alarma.id" >
+                        <!-- <tr v-for="alarma in alarmas" :key="alarma.id" > -->
+                        <tr v-for="(alarma, i) in alarmas" :key="i" >
                             <td><button @click="centrarEnAlarma(alarma)" >{{ alarma.id }}</button></td>
-                            <td><input  v-model="alarma.descripcion" @change="cambiarDescripcion(alarma)" /></td>
-                            <td><input  :value="alarma.latitud + ', ' + alarma.longitud" @change="cambiarPosicion(alarma, $event)" /></td>
-                            <td><input  type="number" v-model="alarma.distancia" @change="cambiarDistancia(alarma)" /></td>
-                            <td><input  type="checkbox" v-model="alarma.activo" @change="cambiarEstado(alarma)" /></td>
-                            <td><button data-icon="delete" data-iconpos="notext" @click="borrarAlarma(alarma)" >Borrar</button></td>
+                            <td><input  v-model="alarma.descripcion" @change="cambiarDescripcion(alarma, i)" /></td>
+                            <td><input  :value="alarma.latitud + ', ' + alarma.longitud" @change="cambiarPosicion(alarma, i, $event)" /></td>
+                            <td><input  type="number" v-model="alarma.distancia" @change="cambiarDistancia(alarma, i)" /></td>
+                            <td><input  type="checkbox" v-model="alarma.activo" @change="cambiarEstado(alarma, i)" /></td>
+                            <td><button data-icon="delete" data-iconpos="notext" @click="borrarAlarma(alarma, i)" >Borrar</button></td>
                         </tr>
                     </tbody>
                 </table>

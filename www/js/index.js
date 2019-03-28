@@ -36,7 +36,7 @@ const app = new Vue({
             
             this.db.transaction(
                 function(tx) {
-                    tx.executeSql(sql_crear_tabla); 
+                    tx.executeSql(sql_crear_tabla);
                 },
                 function(error) { console.log(error.message); }
             );
@@ -45,7 +45,7 @@ const app = new Vue({
         centrarEnAlarma: function(alarma) {
             mapa.panTo([alarma.latitud, alarma.longitud]);
         },
-        cambiarPosicion: function(alarma, evento) {
+        cambiarPosicion: function(alarma, i, evento) {
             var pos_nueva = evento.target.value.split(", ");
             if (pos_nueva.length != 2 || isNaN(pos_nueva[0]) || isNaN(pos_nueva[1])) {
                 navigator.notification.alert("No se escribió bien la posición", null);
@@ -59,11 +59,13 @@ const app = new Vue({
                     }, 
                     (error) => { console.log(error.message); }, 
                     () => {
+                        
                         console.log(`Actualizado: id=${alarma.id}, pos=(${alarma.latitud}, ${alarma.longitud})`);
+                        Vue.set(this.alarmas, i, alarma);
                     });  
             }
         },
-        cambiarDescripcion: function(alarma) {
+        cambiarDescripcion: function(alarma, i) {
             this.db.transaction(
                 (tx) => {
                     tx.executeSql(sql_upd_pos_desc, [alarma.descripcion, alarma.id]);
@@ -71,9 +73,10 @@ const app = new Vue({
                 (error) => { console.log(error.message); }, 
                 () => {
                     console.log(`Actualizado: id=${alarma.id}, descripcion=${alarma.descripcion}`);
+                    Vue.set(this.alarmas, i, alarma);
                 });
         },
-        cambiarDistancia: function(alarma) {
+        cambiarDistancia: function(alarma, i) {
             this.db.transaction(
                 (tx) => {
                     tx.executeSql(sql_upd_pos_dist, [alarma.distancia, alarma.id]);
@@ -81,9 +84,10 @@ const app = new Vue({
                 (error) => { console.log(error.message); }, 
                 () => {
                     console.log(`Actualizado: id=${alarma.id}, distancia=${alarma.distancia}`);
+                    Vue.set(this.alarmas, i, alarma);
                 });
         },
-        cambiarEstado: function(alarma) {
+        cambiarEstado: function(alarma, i) {
             var activo = (alarma.activo) ? 1 : 0;
             this.db.transaction(
                 (tx) => {
@@ -92,9 +96,10 @@ const app = new Vue({
                 (error) => { console.log(error.message); }, 
                 () => {
                     console.log(`Actualizado: id=${alarma.id}, activo=${activo}`);
+                    Vue.set(this.alarmas, i, alarma);
                 });
         },
-        borrarAlarma: function(alarma) {
+        borrarAlarma: function(alarma, indice) {
             navigator.notification.confirm("¿Desea borrar esta alarma?", (i) => {
                 if (i == 1) {
                     this.db.transaction(
@@ -103,13 +108,7 @@ const app = new Vue({
                         },
                         (error) => { console.log(error.message); },
                         () => {
-                            for (var i = 0; i < this.alarmas.length; i++) {
-                                if (alarma.id == this.alarmas[i].id) {
-                                    this.alarmas.splice(i, 1);
-                                    break;
-                                }
-                            }
-                            console.log(`Alarma borrada: id=${alarma.id}`);
+                            this.alarmas.splice(indice, 1);
                         });
                 }
             }, "SinTituloGPS", ["Borrar", "Cancelar"]);
@@ -203,26 +202,38 @@ const app = new Vue({
         },
         // Guardar alarma
         guardarAlarma: function() {
-            // Tomar los datos de la nueva alarma de los controles
-            var posicion    = $("#inGuardarPos").val().split(", ");
-            var latitud     = posicion[0];
-            var longitud    = posicion[1];
-            var descripcion = $("#inGuardarDesc").val();
-            var distancia   = $("#inGuardarDist").val();
-            var activo      = $("#inGuardarActivo").prop("checked") ? 1 : 0;
+            // Tomo los datos de la nueva alarma de los controles
+            var posicion = $("#inGuardarPos").val().split(", ");
+            var alarma = {
+                latitud:        posicion[0],
+                longitud:       posicion[1],
+                descripcion:    $("#inGuardarDesc").val(),
+                distancia:      $("#inGuardarDist").val(),
+                activo:         ($("#inGuardarActivo").prop("checked")) ? 1 : 0,
+            };
             
-            // Insertar alarma en la base de datos
+            // Inserto la nueva alarma en la base de datos
             this.db.transaction(
                 (tx) => {
-                    tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion, distancia, activo]);
+                    tx.executeSql(sql_ins_pos, [alarma.latitud, alarma.longitud, alarma.descripcion, alarma.distancia, alarma.activo]);
                 }, 
                 function(error) { console.log(error.message); },
                 () => {
-                    console.log(`Insercion: desc="${descripcion}", activo=${activo}`);
-                    consultarAlarmas();
+                    // Obtengo el id de la alarma recién insertada:
+                    this.db.transaction(
+                        (tx) => {
+                            tx.executeSql(
+                                "Select last_insert_rowid() As id", [],
+                                function(tx, rs) {
+                                    alarma.id = rs.rows.item(0).id;
+                                    console.log(`Insercion: id=${alarma.id} desc="${alarma.descripcion}", activo=${alarma.activo}`);
+                                    this.alarmas.push(alarma);
+                                }
+                            );
+                        });
                 });
 
-            // Cerrar panel después de guardar
+            // Cierro el panel después de guardar:
             $("#divPanelGuardar").panel("close");
         },
         // Mostrar alarmas
@@ -245,18 +256,27 @@ const app = new Vue({
             );
         },
         llenarTablaAlarmas: function(tx, rs) {
-            // Borrar marcadores y círculos
+            // Vacío la lista de alarmas:
+            this.alarmas.splice(0, this.alarmas.length);
+            
+            for (var i = 0; i < rs.rows.length; i++) {
+                this.alarmas.push(rs.rows.item(i));
+            }
+        },
+    },
+    watch: {
+        // Observo los cambios en la lista de alarmas:
+        alarmas: function() {
+            console.log("Cambio en alarmas detectado");
+            
+            // Borro los marcadores y círculos:
             while (marcadores.length) {
                 mapa.removeLayer(marcadores.pop());
                 mapa.removeLayer(circulos.pop());
             }
             
-            this.alarmas = [];
-            
-            for (var i = 0; i < rs.rows.length; i++) {
-                var alarma = rs.rows.item(i);
-                this.alarmas.push(alarma);
-                
+            for(var i = 0; i < this.alarmas.length; i++) {
+                var alarma = this.alarmas[i];
                 var icono = (alarma.activo)? icono_activo : icono_inactivo;
                     
                 var marcador = L.marker([alarma.latitud, alarma.longitud])
@@ -271,7 +291,7 @@ const app = new Vue({
                 circulos.push(circulo);
             }
         },
-    }
+    },
 });
 
 // Notificaciones ==============================================================
