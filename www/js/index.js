@@ -8,11 +8,9 @@ var icono_activo    = null;
 var icono_actual    = null;
 var icono_inactivo  = null;
 
-const app = new Vue(
-{
+const app = new Vue({
     el: "#divVuePos",
-    data:
-    {
+    data: {
         watchID: null,
         db: null,
         
@@ -28,12 +26,10 @@ const app = new Vue(
         
         pos_inicial: [-34.578973, -59.086396],
     },
-    methods:
-    {
+    methods: {
         init: function() {
             // SQLite storage
-            this.db = window.sqlitePlugin.openDatabase(
-            {
+            this.db = window.sqlitePlugin.openDatabase({
                 name:     "alarmas.db",
                 location: "default"
             });
@@ -99,7 +95,7 @@ const app = new Vue(
                 });
         },
         borrarAlarma: function(alarma) {
-            navigator.notification.confirm("¿Desea borrar esta alarma?", function(i) {
+            navigator.notification.confirm("¿Desea borrar esta alarma?", (i) => {
                 if (i == 1) {
                     this.db.transaction(
                         (tx) => {
@@ -114,7 +110,6 @@ const app = new Vue(
                                 }
                             }
                             console.log(`Alarma borrada: id=${alarma.id}`);
-                            // consultarAlarmas();
                         });
                 }
             }, "SinTituloGPS", ["Borrar", "Cancelar"]);
@@ -122,7 +117,8 @@ const app = new Vue(
         // Observación de la ubicación
         iniciarWatch: function() {
             if (this.watch_iniciado = !this.watch_iniciado) {
-                this.accion_watch = "Detener";
+                this.accion_watch = "Detener"; // Nombre del botón
+                // Iniciar navegación por geolocation
                 this.watchID = navigator.geolocation.watchPosition(
                     this.onWatchPosition, 
                     (error) => {
@@ -138,7 +134,8 @@ const app = new Vue(
                 console.log(`watchPosition iniciado para id=${this.watchID}`);
             }
             else {
-                this.accion_watch = "Iniciar";
+                // Detener navegación
+                this.accion_watch = "Iniciar"; // Nombre del botón
                 navigator.geolocation.clearWatch(this.watchID);
                 console.log(`watchPosition terminado para id=${this.watchID}`);
                 this.watchID = null;
@@ -156,9 +153,17 @@ const app = new Vue(
                 tx.executeSql(
                     sql_sel_pos_act, [],
                     (tx, rs) => {
+                        // Itero por todas las alarmas para ver si estoy cerca 
+                        // de alguna y lanzar una notificación cuando así sea.
                         for (var i = 0; i < rs.rows.length; i++) {
                             var alarma = rs.rows.item(i);
-                            var d      = distancia(this.latitud, this.longitud, alarma.latitud, alarma.longitud);
+                            
+                            // Calcular distancia de la alarma a nuestra 
+                            // posición actual, usando latitud/longitud de 
+                            // ambas.
+                            var d = distancia(
+                                this.latitud, this.longitud, 
+                                alarma.latitud, alarma.longitud);
                     
                             if (d <= (alarma.distancia / 1000)) {
                                 // Si el id de la alarma no está en la lista, 
@@ -196,94 +201,82 @@ const app = new Vue(
             // Poner nuestra ubicación actual como centro del mapa:
             mapa.panTo([this.latitud, this.longitud]);
         },
-    }
-});
+        // Guardar alarma
+        guardarAlarma: function() {
+            // Tomar los datos de la nueva alarma de los controles
+            var posicion    = $("#inGuardarPos").val().split(", ");
+            var latitud     = posicion[0];
+            var longitud    = posicion[1];
+            var descripcion = $("#inGuardarDesc").val();
+            var distancia   = $("#inGuardarDist").val();
+            var activo      = $("#inGuardarActivo").prop("checked") ? 1 : 0;
+            
+            // Insertar alarma en la base de datos
+            this.db.transaction(
+                (tx) => {
+                    tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion, distancia, activo]);
+                }, 
+                function(error) { console.log(error.message); },
+                () => {
+                    console.log(`Insercion: desc="${descripcion}", activo=${activo}`);
+                    consultarAlarmas();
+                });
 
-// Guardar alarma ==============================================================
-function guardarAlarma()
-{
-    var posicion    = $("#inGuardarPos").val().split(", ");
-    var latitud     = posicion[0];
-    var longitud    = posicion[1];
-    var descripcion = $("#inGuardarDesc").val();
-    var distancia   = $("#inGuardarDist").val();
-    var activo      = $("#inGuardarActivo").prop("checked") ? 1 : 0;
-    
-    app.db.transaction(
-        (tx) => 
-        {
-            tx.executeSql(sql_ins_pos, [latitud, longitud, descripcion, distancia, activo]);
-        }, 
-        function(error) { console.log(error.message); },
-        () => 
-        {
-            console.log(`Insercion: desc="${descripcion}", activo=${activo}`);
-            consultarAlarmas();
-        });
-    
-    $("#divPanelGuardar").panel("close");
-    
-    $("#inGuardarDesc").val("");
-    $("#inGuardarDist").val("");
-    $("#inGuardarActivo").prop("checked", true);
-}
-
-// Alarmas guardadas ===========================================================
-function consultarAlarmas()
-{
-    app.db.transaction(
-        (tx) => 
-        {
-            tx.executeSql(
-                sql_sel_pos_all, [], 
-                llenarTablaAlarmas, 
-                function(tx, error) {
+            // Cerrar panel después de guardar
+            $("#divPanelGuardar").panel("close");
+        },
+        // Mostrar alarmas
+        consultarAlarmas: function() {
+            this.db.transaction(
+                (tx) => {
+                    tx.executeSql(
+                        sql_sel_pos_all, [], 
+                        this.llenarTablaAlarmas, 
+                        (tx, error) => {
+                            console.log(error.message);
+                            return true;
+                        }
+                    );
+                },
+                (tx, error) => {
                     console.log(error.message);
                     return true;
                 }
             );
         },
-        function(tx, error) {
-            console.log(error.message);
-            return true;
-        }
-    );
-}
-
-function llenarTablaAlarmas(tx, rs) {
-    // Borrar marcadores y círculos
-    while (marcadores.length) {
-        mapa.removeLayer(marcadores.pop());
-        mapa.removeLayer(circulos.pop());
+        llenarTablaAlarmas: function(tx, rs) {
+            // Borrar marcadores y círculos
+            while (marcadores.length) {
+                mapa.removeLayer(marcadores.pop());
+                mapa.removeLayer(circulos.pop());
+            }
+            
+            this.alarmas = [];
+            
+            for (var i = 0; i < rs.rows.length; i++) {
+                var alarma = rs.rows.item(i);
+                this.alarmas.push(alarma);
+                
+                var icono = (alarma.activo)? icono_activo : icono_inactivo;
+                    
+                var marcador = L.marker([alarma.latitud, alarma.longitud])
+                    .addTo(mapa)
+                    .setIcon(icono)
+                    .bindPopup(alarma.descripcion);
+                    
+                var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
+                    .addTo(mapa);
+                    
+                marcadores.push(marcador);
+                circulos.push(circulo);
+            }
+        },
     }
-    
-    app.alarmas = [];
-    
-    for (var i = 0; i < rs.rows.length; i++)
-    {
-        var alarma = rs.rows.item(i);
-        app.alarmas.push(alarma);
-        
-        var icono = (alarma.activo)? icono_activo : icono_inactivo;
-            
-        var marcador = L.marker([alarma.latitud, alarma.longitud])
-            .addTo(mapa)
-            .setIcon(icono)
-            .bindPopup(alarma.descripcion);
-            
-        var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
-            .addTo(mapa);
-            
-        marcadores.push(marcador);
-        circulos.push(circulo);
-    }
-}
+});
 
 // Notificaciones ==============================================================
-function notificar(titulo, texto)
-{
-    cordova.plugins.notification.local.schedule(
-    {
+function notificar(titulo, texto) {
+    cordova.plugins.notification.local.schedule({
         title:      titulo,
         text:       texto,
         foreground: true
@@ -291,13 +284,11 @@ function notificar(titulo, texto)
 }
 
 // Distancia ===================================================================
-function toRad(g)
-{
+function toRad(g) {
     return g * Math.PI / 180;
 }
 
-function distancia(lat1, lon1, lat2, lon2) 
-{
+function distancia(lat1, lon1, lat2, lon2) {
     var R    = 6371; // Radius of the earth in km
     var dLat = toRad(lat2 - lat1);  // Javascript functions in radians
     var dLon = toRad(lon2 - lon1); 
@@ -315,10 +306,13 @@ $(document).ready(function() {
     console.log("El documento esta listo.");
     
     $("#aPanelGuardar").click(function() {
+        // Colocar la posición actual en el panel de guardar alarma
         $("#inGuardarPos").val(app.latitud + ", " + app.longitud);
     });
     
-    $("#tableAlarmas").bind("DOMNodeInserted", function() { 
+    $("#tableAlarmas").bind("DOMNodeInserted", function() {
+        // Activar los estilos de JQM en los elementos de las filas de la tabla 
+        // cuando se agregan nuevas filas.
         $("#tableAlarmas").trigger("create");
     });
     
@@ -357,21 +351,8 @@ $(document).ready(function() {
 	    
 	    app.init();
 	    
-	    // Botones:
-	    $("#btnGuardarGuardar").click(guardarAlarma);
-	    $("#aPanelTabla").click(consultarAlarmas);
-	    
 	    $(document).bind("pause", function() { 
 	        console.log("Aplicacion pausada"); 
         });
-	    
-	    /* Prueba: *
-	    $("#btnPrueba").click(() =>
-	    {
-	        // Limpiar lista de ids en caché:
-	        app.ids = [];
-	        console.log(`ids vacio: ${JSON.stringify(app.ids)}`);
-	    });
-	    //*/
 	});
 });

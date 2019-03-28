@@ -56,8 +56,9 @@
                 data-role="controlgroup">
                 
                 <button id="btnWatch" data-icon="arrow-r" @click="iniciarWatch()">{{ accion_watch }}</button>
-                <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear" >Guardar alarma</a>
-                <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear" >Mostrar alarmas</a>
+                <!-- <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear" >Guardar alarma</a> -->
+                <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar alarma</a>
+                <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear" @click="consultarAlarmas()" >Mostrar alarmas</a>
             </div>
         </div> <!-- data-role="content" -->
         
@@ -80,13 +81,8 @@
             </div>
             
             <div data-role="controlgroup">
-                <a href="#divVuePos" 
-                    data-rel="close" 
-                    data-role="button">
-                    
-                    Cancelar
-                </a>
-                <button id="btnGuardarGuardar">Guardar</button>
+                <a href="#divVuePos" data-rel="close" data-role="button" >Cancelar</a>
+                <button id="btnGuardar" @click="guardarAlarma()" >Guardar</button>
             </div>
         </div> <!-- "divPanelGuardar -->
     
@@ -133,8 +129,6 @@
             </div> <!-- data-role="content" -->
             
         </div> <!-- #divPanelTabla -->
-    
-        <!-- <button id="btnPrueba" style="width: 100%">Prueba</button> -->    
     </div>
     
     <script src="js/jquery.min.js"></script>
