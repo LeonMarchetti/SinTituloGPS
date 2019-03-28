@@ -1,3 +1,5 @@
+POPUP_CONFIG = { autoPan: false };
+
 Vue.component("mapa", {
     template: "#templateMapa",
     props: ["alarmas", "pos_inicial"],
@@ -11,8 +13,6 @@ Vue.component("mapa", {
             
             marcadores:         [],
             circulos:           [],
-            
-            POPUP_CONFIG:       { autoPan: false },
         }
     },
     mounted: function() {
@@ -46,10 +46,6 @@ Vue.component("mapa", {
                 .addTo(this.mapa)
                 .setIcon(this.icono_actual)
                 .bindPopup(popup_actual);
-                
-            // Círculos
-            var circuloUnlu = L.circle(this.pos_inicial, 200)
-                .addTo(this.mapa);
         },
         onClick: function(e) {
             this.marcador_actual.setLatLng(e.latlng);

@@ -55,7 +55,7 @@
             <div id="divBotones" class="ui-overlay-shadow ui-corner-all" 
                 data-role="controlgroup">
                 
-                <button id="btnWatch" data-icon="arrow-r" >{{ accion_watch }}</button>
+                <button id="btnWatch" data-icon="arrow-r" @click="iniciarWatch()">{{ accion_watch }}</button>
                 <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear" >Guardar alarma</a>
                 <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear" >Mostrar alarmas</a>
             </div>

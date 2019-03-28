@@ -45,9 +45,8 @@ const app = new Vue(
                 function(error) { console.log(error.message); }
             );
         },
-        
+        // Tabla de alarmas
         centrarEnAlarma: function(alarma) {
-            console.log(`centrarEnAlarma: (${alarma.latitud}, ${alarma.longitud})`);
             mapa.panTo([alarma.latitud, alarma.longitud]);
         },
         cambiarPosicion: function(alarma, evento) {
@@ -59,43 +58,43 @@ const app = new Vue(
                 alarma.latitud  = pos_nueva[0];
                 alarma.longitud = pos_nueva[1];
                 this.db.transaction(
-                    function(tx) {
+                    (tx) => {
                         tx.executeSql(sql_upd_pos, [alarma.latitud, alarma.longitud, alarma.id]);
                     }, 
-                    function(error) { console.log(error.message); }, 
-                    function() {
+                    (error) => { console.log(error.message); }, 
+                    () => {
                         console.log(`Actualizado: id=${alarma.id}, pos=(${alarma.latitud}, ${alarma.longitud})`);
                     });  
             }
         },
         cambiarDescripcion: function(alarma) {
             this.db.transaction(
-                function(tx) {
+                (tx) => {
                     tx.executeSql(sql_upd_pos_desc, [alarma.descripcion, alarma.id]);
                 }, 
-                function(error) { console.log(error.message); }, 
-                function() {
+                (error) => { console.log(error.message); }, 
+                () => {
                     console.log(`Actualizado: id=${alarma.id}, descripcion=${alarma.descripcion}`);
                 });
         },
         cambiarDistancia: function(alarma) {
             this.db.transaction(
-                function(tx) {
+                (tx) => {
                     tx.executeSql(sql_upd_pos_dist, [alarma.distancia, alarma.id]);
                 }, 
-                function(error) { console.log(error.message); }, 
-                function() {
+                (error) => { console.log(error.message); }, 
+                () => {
                     console.log(`Actualizado: id=${alarma.id}, distancia=${alarma.distancia}`);
                 });
         },
         cambiarEstado: function(alarma) {
             var activo = (alarma.activo) ? 1 : 0;
             this.db.transaction(
-                function(tx) {
+                (tx) => {
                     tx.executeSql(sql_upd_pos_act, [activo, alarma.id]);
                 },
-                function(error) { console.log(error.message); }, 
-                function() {
+                (error) => { console.log(error.message); }, 
+                () => {
                     console.log(`Actualizado: id=${alarma.id}, activo=${activo}`);
                 });
         },
@@ -103,11 +102,11 @@ const app = new Vue(
             navigator.notification.confirm("¿Desea borrar esta alarma?", function(i) {
                 if (i == 1) {
                     this.db.transaction(
-                        function(tx) {
+                        (tx) => {
                             tx.executeSql("Delete From Posicion Where id=?", [alarma.id]);
                         },
-                        function(error) { console.log(error.message); },
-                        function() {
+                        (error) => { console.log(error.message); },
+                        () => {
                             for (var i = 0; i < this.alarmas.length; i++) {
                                 if (alarma.id == this.alarmas[i].id) {
                                     this.alarmas.splice(i, 1);
@@ -119,6 +118,83 @@ const app = new Vue(
                         });
                 }
             }, "SinTituloGPS", ["Borrar", "Cancelar"]);
+        },
+        // Observación de la ubicación
+        iniciarWatch: function() {
+            if (this.watch_iniciado = !this.watch_iniciado) {
+                this.accion_watch = "Detener";
+                this.watchID = navigator.geolocation.watchPosition(
+                    this.onWatchPosition, 
+                    (error) => {
+                        this.error = error.message;
+                    }, 
+                    {
+                        timeout:            30000,
+                        enableHighAccuracy: true,
+                        maximumAge:         2000,
+                    }
+                );
+                
+                console.log(`watchPosition iniciado para id=${this.watchID}`);
+            }
+            else {
+                this.accion_watch = "Iniciar";
+                navigator.geolocation.clearWatch(this.watchID);
+                console.log(`watchPosition terminado para id=${this.watchID}`);
+                this.watchID = null;
+                this.ids = [];
+            }
+        },
+        onWatchPosition: function(pos) {
+            this.latitud  = pos.coords.latitude;
+            this.longitud = pos.coords.longitude;
+            this.error    = "";
+            
+            console.log(`Ubicación: (${this.latitud}, ${this.longitud})`);
+            
+            this.db.transaction((tx) => {
+                tx.executeSql(
+                    sql_sel_pos_act, [],
+                    (tx, rs) => {
+                        for (var i = 0; i < rs.rows.length; i++) {
+                            var alarma = rs.rows.item(i);
+                            var d      = distancia(this.latitud, this.longitud, alarma.latitud, alarma.longitud);
+                    
+                            if (d <= (alarma.distancia / 1000)) {
+                                // Si el id de la alarma no está en la lista, 
+                                // significa que recién acabo de llegar al área
+                                // de la alarma y entonces tengo que lanzar la 
+                                // notificación.
+                                if (!this.ids.includes(alarma.id))  {
+                                    notificar("Alarma GPS", alarma.descripcion);
+                                    this.ids.push(alarma.id);
+                                }
+                            }
+                            else {
+                                // Si el id está actualmente en la lista de ids,
+                                // entonces significa que acabo de salir de la 
+                                // zona de la alarma y puedo sacar el id de la
+                                // lista.
+                                var j = this.ids.indexOf(alarma.id);
+                                if (j > -1) {
+                                    this.ids.splice(j, 1);
+                                }
+                            }
+                        }
+                    },
+                    (tx, error) => {
+                        console.log(error.message);
+                        return true;
+                    }
+                );
+            });
+            
+            // Mapbox
+            // Mover marcador a nuestra ubicación actual:
+            marcador_actual.setLatLng([this.latitud, this.longitud]).update();
+                
+            // Poner nuestra ubicación actual como centro del mapa:
+            mapa.panTo([this.latitud, this.longitud]);
         },
     }
 });
@@ -234,104 +310,6 @@ function distancia(lat1, lon1, lat2, lon2)
     return d;
 }
 
-// watchPosition ===============================================================
-function onWatchPosition(pos)
-{    
-    app.latitud  = pos.coords.latitude;
-    app.longitud = pos.coords.longitude;
-    app.error    = "";
-    
-    console.log(`(${app.latitud}, ${app.longitud})`);
-    
-    app.db.transaction((tx) =>
-    {
-        tx.executeSql(
-            sql_sel_pos_act, [],
-            (tx, rs) =>
-            {
-                for (var i = 0; i < rs.rows.length; i++)
-                {
-                    var alarma = rs.rows.item(i);
-                    var d      = distancia(
-                                     app.latitud, app.longitud,
-                                     alarma.latitud, alarma.longitud);
-            
-                    if (d <= (alarma.distancia / 1000))
-                    {
-                       /* 
-                        * Si el id de la alarma no está en la lista, 
-                        * significa que recién acabo de llegar al área de 
-                        * la alarma y entonces tengo que lanzar la 
-                        * notificación.
-                        */
-                        if (!app.ids.includes(alarma.id)) 
-                        {
-                            notificar("Alarma GPS", alarma.descripcion);
-                            app.ids.push(alarma.id);
-                        }
-                    }
-                    else
-                    {
-                       /* 
-                        * Si el id está actualmente en la lista de ids,
-                        * entonces significa que acabo de salir de la zona 
-                        * de la alarma y puedo sacar el id de la lista.
-                        */
-                        var j = app.ids.indexOf(alarma.id);
-                        if (j > -1)
-                        {
-                            app.ids.splice(j, 1);
-                        }
-                    }
-                }
-            },
-            function(tx, error) {
-                console.log(error.message);
-                return true;
-            }
-        );
-    });
-    
-    // Mapbox
-    // Mover marcador a nuestra ubicación actual:
-    marcador_actual.setLatLng([app.latitud, app.longitud]).update();
-        
-    // Poner nuestra ubicación actual como centro del mapa:
-    mapa.panTo([app.latitud, app.longitud]);
-}
-
-function onWatchPositionError(error)
-{
-    app.error = error.message;
-}
-
-function iniciarWatch() {
-    if (app.watch_iniciado = !app.watch_iniciado) {
-        app.accion_watch = "Detener";
-        app.watchID = navigator.geolocation.watchPosition(
-            onWatchPosition, 
-            onWatchPositionError, 
-            {
-                timeout:            30000,
-                enableHighAccuracy: true,
-                maximumAge:         2000,
-            }
-        );
-        
-        console.log(`watchPosition iniciado para id=${app.watchID}`);
-    }
-    else {
-        app.accion_watch = "Iniciar";
-        navigator.geolocation.clearWatch(app.watchID);
-        console.log(`watchPosition terminado para id=${app.watchID}`);
-        app.watchID = null;
-        app.ids = [];
-        
-        // Mapbox - Dejar de rastrear la ubicación del dispositivo
-        mapa.stopLocate();
-    }
-}
-
 $(document).ready(function() {	
     console.log("=".repeat(55));
     console.log("El documento esta listo.");
@@ -380,7 +358,6 @@ $(document).ready(function() {
 	    app.init();
 	    
 	    // Botones:
-	    $("#btnWatch").click(iniciarWatch);
 	    $("#btnGuardarGuardar").click(guardarAlarma);
 	    $("#aPanelTabla").click(consultarAlarmas);
 	    
