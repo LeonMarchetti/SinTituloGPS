@@ -51,6 +51,13 @@
             <div id="divContMapa">
                 <div id="divMapa"></div>
             </div>
+            
+            <!-- <mapa 
+                :alarmas="alarmas"
+                :latlng="[latitud, longitud]"
+                :pos_inicial="pos_inicial" 
+                @cambio_pos="onCambioPos($event)" >
+            </mapa> -->
         
             <div id="divBotones" class="ui-overlay-shadow ui-corner-all" 
                 data-role="controlgroup">
@@ -131,6 +138,12 @@
             
         </div> <!-- #divPanelTabla -->
     </div>
+    
+    <template id="templateMapa">
+    <div id="divContMapa">
+        <div id="divMapa"></div>
+    </div>
+    </template>
     
     <script src="js/jquery.min.js"></script>
     <script src="js/jquery.mobile-1.4.5.min.js"></script>
