@@ -42,8 +42,11 @@ const app = new Vue({
             );
         },
         // Tabla de alarmas
+        // * "i" es la posición de la alarma en la tabla.
         centrarEnAlarma: function(alarma) {
+            // Mueve el mapa para mostrar la ubicación de la alarma.
             mapa.panTo([alarma.latitud, alarma.longitud]);
+            $("#divPanelTabla").panel("close"); // Cierra el panel de la tabla.
         },
         cambiarPosicion: function(alarma, i, evento) {
             var pos_nueva = evento.target.value.split(", ");
@@ -99,16 +102,16 @@ const app = new Vue({
                     Vue.set(this.alarmas, i, alarma);
                 });
         },
-        borrarAlarma: function(alarma, indice) {
-            navigator.notification.confirm("¿Desea borrar esta alarma?", (i) => {
-                if (i == 1) {
+        borrarAlarma: function(alarma, i) {
+            navigator.notification.confirm("¿Desea borrar esta alarma?", (boton) => {
+                if (boton == 1) {
                     this.db.transaction(
                         (tx) => {
                             tx.executeSql("Delete From Posicion Where id=?", [alarma.id]);
                         },
                         (error) => { console.log(error.message); },
                         () => {
-                            this.alarmas.splice(indice, 1);
+                            this.alarmas.splice(i, 1);
                             console.log(`Alarma borrada: [${alarma.id}] "${alarma.descripcion}"`);
                         });
                 }
@@ -243,7 +246,7 @@ const app = new Vue({
                 (tx) => {
                     tx.executeSql(
                         sql_sel_pos_all, [], 
-                        this.llenarTablaAlarmas, 
+                        this.obtenerAlarmas, 
                         (tx, error) => {
                             console.log(error.message);
                             return true;
@@ -256,22 +259,24 @@ const app = new Vue({
                 }
             );
         },
-        llenarTablaAlarmas: function(tx, rs) {
-            // Vacío la lista de alarmas:
+        obtenerAlarmas: function(tx, rs) {
+            // Vacío la lista de alarmas.
             this.alarmas.splice(0, this.alarmas.length);
-            
+            // Obtengo todas las alarmas del resultado de la consulta.
             for (var i = 0; i < rs.rows.length; i++) {
                 this.alarmas.push(rs.rows.item(i));
             }
         },
-        // Mapbox
+        // Mapbox - Marcadores
         borrarMarcadores: function() {
+            // Se borran todos los marcadores y círculos del mapa.
             while (marcadores.length) {
                 mapa.removeLayer(marcadores.pop());
                 mapa.removeLayer(circulos.pop());
             }
         },
         dibujarMarcadores: function() {
+            // Se dibuja un marcador y un círculo para cada alarma en el mapa.
             for(var i = 0; i < this.alarmas.length; i++) {
                 var alarma = this.alarmas[i];
                 var icono = (alarma.activo)? icono_activo : icono_inactivo;
@@ -282,6 +287,7 @@ const app = new Vue({
                     .bindPopup(alarma.descripcion);
                     
                 // TODO: El circulo de una alarma recien guardada es muy chiquito.
+                // Pero se arregla al iterar las alarmas una segunda vez.
                 var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
                     .addTo(mapa);
                     
