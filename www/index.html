@@ -48,22 +48,17 @@
                 </tr>
             </table>
         
-            <div id="divContMapa">
-                <div id="divMapa"></div>
-            </div>
-            
-            <!-- <mapa 
+            <mapa 
                 :alarmas="alarmas"
-                :latlng="[latitud, longitud]"
-                :pos_inicial="pos_inicial" 
-                @cambio_pos="onCambioPos($event)" >
-            </mapa> -->
+                :pos_actual="pos_actual"
+                :pos_inicial="pos_inicial"
+                @guardar="onGuardar($event)" >
+            </mapa>
         
             <div id="divBotones" class="ui-overlay-shadow ui-corner-all" 
                 data-role="controlgroup">
                 
                 <button id="btnWatch" data-icon="arrow-r" @click="iniciarWatch()">{{ accion_watch }}</button>
-                <!-- <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear" >Guardar alarma</a> -->
                 <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar alarma</a>
                 <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear" @click="consultarAlarmas()" >Mostrar alarmas</a>
             </div>
@@ -152,6 +147,7 @@
     <script type="text/javascript" src="js/vue.js"></script>
     <script type="text/javascript" src="js/consultas_sql.js"></script>
     <script src="js/mapbox_access_token.js"></script>
+    <script src="js/mapa.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
 </body>
     

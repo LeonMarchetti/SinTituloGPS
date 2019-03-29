@@ -2,7 +2,7 @@ POPUP_CONFIG = { autoPan: false };
 
 Vue.component("mapa", {
     template: "#templateMapa",
-    props: ["alarmas", "latlng", "pos_inicial",],
+    props: ["alarmas", "pos_actual", "pos_inicial",],
     data: function() { 
         return {
             mapa:               null,
@@ -17,6 +17,7 @@ Vue.component("mapa", {
     },
     mounted: function() {
         this.init();
+        console.log(`[mounted] Componente "mapa" montado`);
     },
     methods: {
         init: function() {
@@ -29,7 +30,6 @@ Vue.component("mapa", {
             this.initMarcadores();
                 
             this.mapa.on("click", this.onClick);
-            this.mapa.on("locationfound", this.onLocationFound);
             $("#divMapa").on("click", ".spanPopup", this.onClickPopup);
         },
         initIconos: function() {
@@ -48,15 +48,12 @@ Vue.component("mapa", {
                 .setIcon(this.icono_actual)
                 .bindPopup(popup_actual);
         },
+        // Eventos
         onClick: function(e) {
             this.marcador_actual.setLatLng(e.latlng);
         },
         onClickPopup: function() {
             var pos_actual = this.marcador_actual.getLatLng();
-            console.log(`Guardar: ${pos_actual}`);
-            
-            // TODO: Recibir evento en el componente raiz para guardar una alarma.
-            // Tengo que pasar la latitud y la longitud.
             this.$emit("guardar", [pos_actual.lat, pos_actual.lng]);
         },
         // Marcadores:
@@ -72,11 +69,15 @@ Vue.component("mapa", {
                 var alarma = this.alarmas[i];
                 var icono = (alarma.activo)? this.icono_activo : this.icono_inactivo;
                     
+                var popup = L.popup(POPUP_CONFIG)
+                    .setContent(alarma.descripcion);
+                    
                 var marcador = L.marker([alarma.latitud, alarma.longitud])
                     .addTo(this.mapa)
                     .setIcon(icono)
-                    .bindPopup(alarma.descripcion);
+                    .bindPopup(popup);
                     
+                // TODO: No aparecen los circulos en el mapa (algunas veces si)
                 var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
                     .addTo(this.mapa);
                     
@@ -84,18 +85,19 @@ Vue.component("mapa", {
                 this.circulos.push(circulo);
             }
         },
-        watch: {
-            alarmas: function() {
-                console.log("mapa.js - Cambio en alarmas detectado");
-                
-                this.borrarMarcadores();
-                this.dibujarMarcadores();
-            },
-            latlng: function() {
-                console.log("mapa.js - Cambio en latlng detectado");
-                
-                this.marcador_actual.setLatLng(this.latlng[0], this.latlng[1]);
-            },
+    },
+    watch: {
+        alarmas: function() {
+            this.borrarMarcadores();
+            this.dibujarMarcadores();
+        },
+        pos_actual: function() {
+            // Cuando detecto un cambio en "pos_actual" muevo el marcador y el 
+            // centro del mapa hacia esa posición
+            if (this.pos_actual) {
+                this.marcador_actual.setLatLng(this.pos_actual);
+                this.mapa.panTo(this.pos_actual);
+            }
         },
     },
 });

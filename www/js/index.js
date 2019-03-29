@@ -1,13 +1,3 @@
-// Mapbox:
-var mapa            = null;
-var marcador_actual = null;
-var marcadores      = [];
-var circulos        = [];
-
-var icono_activo    = null;
-var icono_actual    = null;
-var icono_inactivo  = null;
-
 const app = new Vue({
     el: "#divVuePos",
     data: {
@@ -16,6 +6,7 @@ const app = new Vue({
         
         latitud: null,
         longitud: null,
+        pos_actual: null,
         error: "",
         ids: [],
         
@@ -45,8 +36,8 @@ const app = new Vue({
         // * "i" es la posición de la alarma en la tabla.
         centrarEnAlarma: function(alarma) {
             // Mueve el mapa para mostrar la ubicación de la alarma.
-            mapa.panTo([alarma.latitud, alarma.longitud]);
             $("#divPanelTabla").panel("close"); // Cierra el panel de la tabla.
+            this.pos_actual = [alarma.latitud, alarma.longitud];
         },
         cambiarPosicion: function(alarma, i, evento) {
             var pos_nueva = evento.target.value.split(", ");
@@ -121,11 +112,13 @@ const app = new Vue({
         iniciarWatch: function() {
             if (this.watch_iniciado = !this.watch_iniciado) {
                 this.accion_watch = "Detener"; // Nombre del botón
+                this.error ="";
                 // Iniciar navegación por geolocation
                 this.watchID = navigator.geolocation.watchPosition(
                     this.onWatchPosition, 
                     (error) => {
                         this.error = error.message;
+                        console.log(`Error watch: ${error.message}`);
                     }, 
                     {
                         timeout:            30000,
@@ -148,7 +141,6 @@ const app = new Vue({
         onWatchPosition: function(pos) {
             this.latitud  = pos.coords.latitude;
             this.longitud = pos.coords.longitude;
-            this.error    = "";
             
             console.log(`Ubicación: (${this.latitud}, ${this.longitud})`);
             
@@ -191,20 +183,23 @@ const app = new Vue({
                         }
                     },
                     (tx, error) => {
+                        this.error = error.message;
                         console.log(error.message);
                         return true;
                     }
                 );
             });
             
-            // Mapbox
-            // Mover marcador a nuestra ubicación actual:
-            marcador_actual.setLatLng([this.latitud, this.longitud]).update();
-                
-            // Poner nuestra ubicación actual como centro del mapa:
-            mapa.panTo([this.latitud, this.longitud]);
+            // Actualizo la posición actual para pasarla al mapa
+            this.pos_actual = [this.latitud, this.longitud];
         },
         // Guardar alarma
+        onGuardar: function(posicion) {
+            // "posicion" tiene la latitud y longitud de la posición a guardar.
+            $("#divPanelGuardar").panel("open");
+            $("#inGuardarPos").val(posicion[0] + ", " + posicion[1]);
+            $("#inGuardarDesc").val("Posición elegida");
+        },
         guardarAlarma: function() {
             // Tomo los datos de la nueva alarma de los controles
             var posicion = $("#inGuardarPos").val().split(", ");
@@ -242,6 +237,7 @@ const app = new Vue({
         },
         // Mostrar alarmas
         consultarAlarmas: function() {
+            // TODO: Consultar las alarmas de la base de datos SOLO al iniciar la aplicacion.
             this.db.transaction(
                 (tx) => {
                     tx.executeSql(
@@ -267,43 +263,22 @@ const app = new Vue({
                 this.alarmas.push(rs.rows.item(i));
             }
         },
-        // Mapbox - Marcadores
-        borrarMarcadores: function() {
-            // Se borran todos los marcadores y círculos del mapa.
-            while (marcadores.length) {
-                mapa.removeLayer(marcadores.pop());
-                mapa.removeLayer(circulos.pop());
-            }
-        },
-        dibujarMarcadores: function() {
-            // Se dibuja un marcador y un círculo para cada alarma en el mapa.
-            for(var i = 0; i < this.alarmas.length; i++) {
-                var alarma = this.alarmas[i];
-                var icono = (alarma.activo)? icono_activo : icono_inactivo;
-                    
-                var marcador = L.marker([alarma.latitud, alarma.longitud])
-                    .addTo(mapa)
-                    .setIcon(icono)
-                    .bindPopup(alarma.descripcion);
-                    
-                // TODO: El circulo de una alarma recien guardada es muy chiquito.
-                // Pero se arregla al iterar las alarmas una segunda vez.
-                var circulo = L.circle([alarma.latitud, alarma.longitud], alarma.distancia)
-                    .addTo(mapa);
-                    
-                marcadores.push(marcador);
-                circulos.push(circulo);
-            }
-        },
     },
     watch: {
         // Observo los cambios en la lista de alarmas:
-        alarmas: function() {
+        /* alarmas: function() {
             console.log("Cambio en alarmas detectado");
             
             this.borrarMarcadores();
             this.dibujarMarcadores();
+        }, */
+        /* latitud: function() {
+            console.log(`cambió la latitud: ${this.latitud}`);
         },
+        longitud: function() {
+            console.log(`cambió la longitud: ${this.longitud}`);
+        }, */
+        
     },
 });
 
@@ -347,35 +322,6 @@ $(document).ready(function() {
         // Activar los estilos de JQM en los elementos de las filas de la tabla 
         // cuando se agregan nuevas filas.
         $("#tableAlarmas").trigger("create");
-    });
-    
-    // Mapbox =================================================================
-    L.mapbox.accessToken = MAPBOX_ACCESS_TOKEN;
-    mapa = L.mapbox.map('divMapa')
-        .setView(app.pos_inicial, 15)
-        .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
-        
-    // Inicializar íconos
-    icono_actual = L.icon({ iconUrl: "img/star-15.svg" });
-    icono_activo = L.icon({ iconUrl: "img/marker-15.svg" });
-    icono_inactivo = L.icon({ iconUrl: "img/marker-stroked-15.svg" });
-        
-    $("#divMapa").on("click", ".spanPopup", function() {
-        $("#divPanelGuardar").panel("open");
-        var pos_actual = marcador_actual.getLatLng();
-        $("#inGuardarPos").val(pos_actual.lat + ", " + pos_actual.lng);
-        $("#inGuardarDesc").val("Posición elegida");
-    });
-        
-    marcador_actual = L.marker([0, 0])
-        .addTo(mapa)
-        .setIcon(icono_actual)
-        .bindPopup("<span class='spanPopup'>Guardar</span>");
-            
-    mapa.on("click", function(me) {
-        marcador_actual
-            .setLatLng(me.latlng)
-            .update();
     });
     
     // Cordova ================================================================
