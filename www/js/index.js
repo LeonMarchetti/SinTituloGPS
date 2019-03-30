@@ -25,12 +25,16 @@ const app = new Vue({
                 location: "default"
             });
             
+            // Creo la tabla si no existe
             this.db.transaction(
                 function(tx) {
                     tx.executeSql(sql_crear_tabla);
                 },
                 function(error) { console.log(error.message); }
             );
+            
+            // Obtengo de la base de datos todas las alarmas
+            this.consultarAlarmas();
         },
         // Tabla de alarmas
         // * "i" es la posición de la alarma en la tabla.
@@ -237,7 +241,6 @@ const app = new Vue({
         },
         // Mostrar alarmas
         consultarAlarmas: function() {
-            // TODO: Consultar las alarmas de la base de datos SOLO al iniciar la aplicacion.
             this.db.transaction(
                 (tx) => {
                     tx.executeSql(

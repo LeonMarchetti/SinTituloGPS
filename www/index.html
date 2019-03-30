@@ -35,9 +35,9 @@
         <div data-role="content">
         
             <table>
-                <tr>
+                <!-- <tr>
                     <td colspan="2" class="titulo">io.sintitulo.cordova</td>
-                </tr>
+                </tr> -->
                 <tr>
                     <td>Posicion</td>
                     <td><input readonly :value="(latitud || '') + ', ' + (longitud || '')"/></td>
@@ -54,13 +54,13 @@
                 :pos_inicial="pos_inicial"
                 @guardar="onGuardar($event)" >
             </mapa>
-        
+            
             <div id="divBotones" class="ui-overlay-shadow ui-corner-all" 
                 data-role="controlgroup">
                 
                 <button id="btnWatch" data-icon="arrow-r" @click="iniciarWatch()">{{ accion_watch }}</button>
                 <a id="aPanelGuardar" href="#divPanelGuardar" data-role="button" data-icon="gear">Guardar alarma</a>
-                <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear" @click="consultarAlarmas()" >Mostrar alarmas</a>
+                <a id="aPanelTabla" href="#divPanelTabla" data-role="button" data-icon="gear" >Mostrar alarmas</a>
             </div>
         </div> <!-- data-role="content" -->
         
@@ -117,8 +117,7 @@
                         </tr>
                     </thead>
                     <tbody id="tbodyAlarmas">
-                        <!-- <tr v-for="alarma in alarmas" :key="alarma.id" > -->
-                        <tr v-for="(alarma, i) in alarmas" :key="i" >
+                        <tr v-for="(alarma, i) in alarmas" :key="alarma.id" >
                             <td><button @click="centrarEnAlarma(alarma)" >{{ alarma.id }}</button></td>
                             <td><input  v-model="alarma.descripcion" @change="cambiarDescripcion(alarma, i)" /></td>
                             <td><input  :value="alarma.latitud + ', ' + alarma.longitud" @change="cambiarPosicion(alarma, i, $event)" /></td>
