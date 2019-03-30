@@ -2,7 +2,21 @@ POPUP_CONFIG = { autoPan: false };
 
 Vue.component("mapa", {
     template: "#templateMapa",
-    props: ["alarmas", "pos_actual", "pos_inicial",],
+    // props: ["alarmas", "pos_actual", "pos_inicial",],
+    props: {
+        alarmas: {
+            type: Array,
+            note: "El arreglo de alarmas que el mapa va a mostrar en forma de marcadores. Requiere de los atributos 'latitud', 'longitud', y 'distancia'.",
+        },
+        pos_actual: {
+            type: Array,
+            note: "Posición actual del mapa, el mapa se va a centrar en esta posición cada vez que esta cambie.",
+        },
+        pos_inicial: {
+            type: Array,
+            note: "Posición inicial del mapa.",
+        },
+    },
     data: function() { 
         return {
             mapa:               null,
@@ -23,8 +37,15 @@ Vue.component("mapa", {
         init: function() {
             L.mapbox.accessToken = MAPBOX_ACCESS_TOKEN;
             this.mapa = L.mapbox.map('divMapa')
-                .setView(this.pos_inicial, 15)
                 .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
+                
+            // Centro el mapa en la ubicación inicial pasada desde el 
+            // componente raíz.
+            if (this.pos_inicial) {
+                this.mapa.setView(this.pos_inicial, 15);
+            } else {
+                this.mapa.setView([0, 0], 15);
+            }
             
             this.initIconos();
             this.initMarcadores();
@@ -50,9 +71,13 @@ Vue.component("mapa", {
         },
         // Eventos
         onClick: function(e) {
+            // Cuando presiono en el mapa mueve el marcador al punto donde 
+            // presioné.
             this.marcador_actual.setLatLng(e.latlng);
         },
         onClickPopup: function() {
+            // Cuando presiono en el cartelito del marcador actual le digo al 
+            // componente padre que guarde esta ubicación.
             var pos_actual = this.marcador_actual.getLatLng();
             this.$emit("guardar", [pos_actual.lat, pos_actual.lng]);
         },
@@ -67,11 +92,16 @@ Vue.component("mapa", {
             // Se dibuja un marcador y un círculo para cada alarma en el mapa.
             for(var i = 0; i < this.alarmas.length; i++) {
                 var alarma = this.alarmas[i];
+                
+                // Determino el ícono según si la alarma está activa o no.
                 var icono = (alarma.activo)? this.icono_activo : this.icono_inactivo;
                     
+                // Cartelito que aparece al apretar sobre un marcador con la 
+                // descripción de la alarma.
                 var popup = L.popup(POPUP_CONFIG)
                     .setContent(alarma.descripcion);
-                    
+
+                // Marcador
                 var marcador = L.marker([alarma.latitud, alarma.longitud])
                     .addTo(this.mapa)
                     .setIcon(icono)
